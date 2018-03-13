@@ -31,11 +31,8 @@ for aspect_num=1:length(aspects)
   for typ=fields(s_mid)'
     all_axis = [all_axis ax];
     typ=typ{:};
-    num_stacks = length(s_mid.(typ).(aspect.value));
-    all_Values = [];
     Values = cell2mat(s_mid.(typ).(aspect.value));
     bar_data(count,:) = Values;
-    all_Values = [all_Values Values];
     legend_names{length(legend_names)+1} = type_namemap(typ);
     means = [means mean(Values)];
 

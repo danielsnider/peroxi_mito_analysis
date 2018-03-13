@@ -41,7 +41,6 @@ NUM_CHANS = 2;
 
 % Organizing
 organize_4_types_of_stacks
-montage_overview_pero_mito
 get_middle_slice_for_each_stack
 
 % Segmenting
@@ -53,14 +52,21 @@ segment_pero_seed_watershed
 measure_dist_pero_to_mito
 
 % Visualizing
-%visualize_pero_and_mito
-visualize_pero_and_mito_with_distances
+
+%visualize_pero_and_mito_with_distances
+
+
+% visualize_pero_and_mito
+% montage_overview_pero_mito
 % montage_thresh_bw_loop
 %montage_pero_ws_shuffle_on_grey
 %montage_mito_red_outline_on_grey
 
 % Plotting
 plot_ksdensity_distance
-plot_bar_multi
+plot_bar_grouped_by_type
+plot_bar_stacked_num_contacts
 
+
+plot_bar_subplots
 

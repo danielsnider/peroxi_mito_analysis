@@ -1,4 +1,4 @@
-log_msg(sprintf('[%s]: %s', mfilename(), 'Plotting ksdensity distances...'));
+log_msg(sprintf('[%s]: %s', mfilename(), 'Plotting bar charts...'));
 
 type_namemap = containers.Map;
 type_namemap('raw') = 'Raw';
