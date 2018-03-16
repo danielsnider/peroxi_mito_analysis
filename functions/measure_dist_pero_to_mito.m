@@ -20,21 +20,55 @@ for typ=fields(s_mid)'
     [Y X] = find(im_mito_thresh);
     MitoLocationsXY = [X Y];
     %% Calc X Y Centroids (Pero)
-    stats = regionprops(bwlabel(im_pero_ws),'Centroid');
-    PeroCentroidsXY = round(cat(1,stats.Centroid));
-    PeroCentroidsXYInd = sub2ind(size(im_pero_ws), PeroCentroidsXY(:,2),PeroCentroidsXY(:,1));
-    %  Make new image with pero centers marked with a 1
-    % im_pero_centroids = zeros(size(im_pero_ws));
-    % im_pero_centroids(PeroCentroidsXYInd)=1;
-    
-    %% Calc Distance to Nearest Mito from Pero
-    PeroCentroidsXY = PeroCentroidsXY';
-    MitoLocationsXY = MitoLocationsXY';
-    NearestMitoInd = nearestneighbour(PeroCentroidsXY, MitoLocationsXY);
-    TranslationX = MitoLocationsXY(1,NearestMitoInd) - PeroCentroidsXY(1, :);
-    TranslationY = MitoLocationsXY(2, NearestMitoInd) - PeroCentroidsXY(2, :);
-    [theta,rho] = cart2pol(TranslationX,TranslationY);
-    Distances = rho;
+    pero_stats = regionprops(bwlabel(im_pero_ws),im_pero,'Centroid','Area','MeanIntensity');
+    if length(pero_stats)
+      PeroCentroidsXY = round(cat(1,pero_stats.Centroid));
+      PeroCentroidsXYInd = sub2ind(size(im_pero_ws), PeroCentroidsXY(:,2),PeroCentroidsXY(:,1));
+      %  Make new image with pero centers marked with a 1
+      % im_pero_centroids = zeros(size(im_pero_ws));
+      % im_pero_centroids(PeroCentroidsXYInd)=1;
+
+      % Mito Stats
+      mito_stats = regionprops(bwlabel(im_mito_thresh),im_mito,'Centroid','Area','MeanIntensity');
+      
+      %% Calc Distance to Nearest Mito from Pero
+      PeroCentroidsXY = PeroCentroidsXY';
+      MitoLocationsXY = MitoLocationsXY';
+      NearestMitoInd = nearestneighbour(PeroCentroidsXY, MitoLocationsXY);
+      TranslationX = MitoLocationsXY(1,NearestMitoInd) - PeroCentroidsXY(1, :);
+      TranslationY = MitoLocationsXY(2, NearestMitoInd) - PeroCentroidsXY(2, :);
+      [theta,rho] = cart2pol(TranslationX,TranslationY);
+      Distances = rho;
+
+      if EDGE_TO_EDGE_DISTANCE
+        %% Measure not from center but edge
+        % This could be done with linear algebra
+        pero_boundaries = regionprops(bwlabel(bwperim(im_pero_ws)),'Image');
+        for idx=1:length(pero_boundaries)
+          pero_boundary = pero_boundaries(idx).Image;
+          [Y,X]=find(pero_boundary);
+          % Find 
+          X2=X-size(pero_boundary,2)/2-0.5;
+          Y2=Y-size(pero_boundary,1)/2-0.5;
+          this_segment_theta = theta(idx);
+          [theta_,rho_] = cart2pol(X2,Y2);
+          [min_val, min_idx] = min(abs(theta_-this_segment_theta));
+          Distances(idx) = Distances(idx) - rho_(min_idx);
+        end
+        Distances(Distances<0)=0;
+      end
+    end
+
+    % Handle no objects found
+    if length(pero_stats)==0
+      mito_stats = pero_stats;
+      PeroCentroidsXY = [];
+      MitoLocationsXY = [];
+      NearestMitoInd = [];
+      TranslationX = [];
+      TranslationY = [];
+      Distances = [];
+    end
 
     % Store Result
     s_mid.(typ).PeroCentroidsXY{z} = PeroCentroidsXY;
@@ -46,8 +80,12 @@ for typ=fields(s_mid)'
 
     % More Measurements (Should be another file?)
     s_mid.(typ).NumPero{z} = length(PeroCentroidsXY);
-    s_mid.(typ).NumPeroDivMitoArea{z} = length(PeroCentroidsXY);
-    s_mid.(typ).PeroAreaDivMitoArea{z} = length(PeroCentroidsXY);
+    s_mid.(typ).PeroArea{z} = cat(1,pero_stats.Area);
+    s_mid.(typ).PeroMeanIntensity{z} = cat(1,pero_stats.MeanIntensity);
+    s_mid.(typ).PeroTotalIntensity{z} = s_mid.(typ).PeroArea{z} .* s_mid.(typ).PeroMeanIntensity{z};
+    s_mid.(typ).MitoArea{z} = cat(1,mito_stats.Area);
+    s_mid.(typ).MitoAreaDivNumPero{z} =  sum(s_mid.(typ).MitoArea{z}) / s_mid.(typ).NumPero{z};
+    s_mid.(typ).PeroAreaDivMitoArea{z} = sum(s_mid.(typ).PeroArea{z}) ./ sum(s_mid.(typ).MitoArea{z});
 
     % Debug
 %     figure

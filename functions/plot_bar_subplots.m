@@ -1,10 +1,5 @@
 log_msg(sprintf('[%s]: %s', mfilename(), 'Plotting bar charts...'));
 
-type_namemap = containers.Map;
-type_namemap('raw') = 'Raw';
-type_namemap('decon') = 'Deconvolved';
-type_namemap('zoom_raw') = 'Zoomed Raw';
-type_namemap('zoom_decon') = 'Zoomed Deconvolved';
 
 n = 0;
 aspects = struct();

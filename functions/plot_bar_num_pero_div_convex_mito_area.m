@@ -10,9 +10,9 @@ type_names = {'Raw', 'Deconvolved', 'Zoomed Raw', 'Zoomed Deconvolved'};
 n = 0;
 aspects = struct();
 n = n + 1;
-aspects(n).title = 'Number of Peroxisomes';
+aspects(n).title = 'Number of Peroxisomes / Convex Area';
 aspects(n).value = 'NumPero';
-aspects(n).ylabel = 'Number of Peroxisomes';
+aspects(n).ylabel = 'Number of Peroxisomes / Convex Area (um^2)';
 
 for aspect_num=1:length(aspects)
   figure;
@@ -29,9 +29,10 @@ for aspect_num=1:length(aspects)
 
   % Loop over stack types
   for typ=fields(s_mid)'
-    all_axis = [all_axis ax];
     typ=typ{:};
-    Values = cell2mat(s_mid.(typ).(aspect.value));
+    num_pero_per_stack = [s_mid.(typ).NumPero{:}];
+    area_per_stack = s_mid.(typ).ConvexAreaSqrUM;
+    Values = num_pero_per_stack ./ area_per_stack;
     bar_data(count,:) = Values;
     legend_names{length(legend_names)+1} = type_namemap(typ);
     means = [means mean(Values)];
@@ -63,7 +64,7 @@ for aspect_num=1:length(aspects)
   set(gcf,'Color',[1 1 1 ]);
   set(gca,'XTick',[1:4]);
   set(gca,'XTickLabels',type_names);
-  ylabel(aspect.ylabel, 'Interpreter','none');
+  ylabel(aspect.ylabel);
   axis tight;
   set(gca,'TickLength',[0 0])
   box off;
@@ -71,7 +72,8 @@ for aspect_num=1:length(aspects)
  
   title(aspect.title,'Interpreter','none');
 
-  fig_name = ['bar_plot'];
-  export_fig([fig_save_path fig_name '.png'],'-m2');
-
+  if SAVE_TO_DISK
+    fig_name = ['5_plot_bar_grouped_by_type_mtotal_div_ptotal_'];
+    export_fig([fig_save_path fig_name '.png'],'-m2');
+  end
 end

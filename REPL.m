@@ -1,7 +1,7 @@
 while true
     try
-        clear plot_bar_stacked_num_contacts
-        plot_bar_stacked_num_contacts
+        clear plot_scatter_pero_intensity_vs_dist
+        plot_scatter_pero_intensity_vs_dist
         pause(.3)
     catch ME
         getReport(ME)

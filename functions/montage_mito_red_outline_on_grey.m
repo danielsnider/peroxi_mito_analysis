@@ -30,6 +30,10 @@ for typ=fields(s_mid)'
     [xm,ym]=find(seeds);
     hold on
     plot(ym,xm,'or','markersize',2,'markerfacecolor','r','markeredgecolor','r')
+
+    if ONE_ONLY
+      return
+    end
     % Store result
     [imageData, alpha] = export_fig('ws_out.png','-m2');
     if isempty(m)

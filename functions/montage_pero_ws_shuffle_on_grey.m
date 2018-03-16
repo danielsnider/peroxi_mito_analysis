@@ -10,8 +10,8 @@ for typ=fields(s_mid)'
   for z=1:z_depth
     % Display original image
     img = img_stack(:,:,z);
-    if min(img(:)) < prctile(img(:),99.5)
-        min_max = [min(img(:)) prctile(img(:),99.5)];
+    if min(img(:)) < prctile(img(:),99.99)
+        min_max = [min(img(:)) prctile(img(:),99.99)];
     else
         min_max = [];
     end
@@ -29,6 +29,11 @@ for typ=fields(s_mid)'
     [xm,ym]=find(seeds);
     hold on
     plot(ym,xm,'or','markersize',2,'markerfacecolor','r','markeredgecolor','r')
+    
+
+    if ONE_ONLY
+      return
+    end
     % Store result
     [imageData, alpha] = export_fig('ws_out.png','-m2');
     if isempty(m)

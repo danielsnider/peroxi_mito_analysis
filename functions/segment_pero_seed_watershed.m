@@ -28,8 +28,8 @@ for typ=fields(s_mid)'
     % Remove objects that are too small or too large
     stats = regionprops(labelled_img,'area');
     area = cat(1,stats.Area);
-    min_area = 11;
-    max_area = 5000;
+    % min_area = 30;
+    % max_area = 5000;
     labelled_img(ismember(labelled_img,find(area > max_area | area < min_area)))=0;
 
     % Store result

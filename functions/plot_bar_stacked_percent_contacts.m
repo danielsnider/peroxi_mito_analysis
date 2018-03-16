@@ -1,11 +1,19 @@
 log_msg(sprintf('[%s]: %s', mfilename(), 'Plotting ksdensity distances...'));
 
+
+type_namemap = containers.Map;
+type_namemap('raw') = 'Raw';
+type_namemap('decon') = 'Deconvolved';
+type_namemap('zoom_raw') = 'Zoomed Raw';
+type_namemap('zoom_decon') = 'Zoomed Deconvolved';
+type_names = {'Raw', 'Deconvolved', 'Zoomed Raw', 'Zoomed Deconvolved'};
+
 n = 0;
 aspects = struct();
 n = n + 1;
-aspects(n).title = sprintf('Number of Peroxisomes within %snm of Mitochondria',num2str(CONTACT_DIST_NM));
+aspects(n).title = sprintf('Percentange of Peroxisomes within %snm of Mitochondria',num2str(CONTACT_DIST_NM));
 aspects(n).value = 'Distances';
-aspects(n).ylabel_left = 'Number of Contacts';
+aspects(n).ylabel_left = 'Percentange in Contact';
 aspects(n).ylabel_right = 'Distance (nm)';
 
 
@@ -16,16 +24,13 @@ for aspect_num=1:length(aspects)
   medians = [];
   percent_out_of_contact = [];
   bar_data = [];
-  legend_names = {['In Contact (within ' num2str(CONTACT_DIST_NM) 'nm)'],'Out of Contact'};
+  legend_names = {['In Contact (within ' num2str(CONTACT_DIST_NM) 'nm)']};
 
   fig = figure;
   % clf('reset')
 
   cmap=cbrewer('seq', 'PuBu', 2);
   cmap=[cmap(2,:); cmap(1,:)];
-  left_color = [.1 .1 0];
-  right_color = [0 .5 .5];
-  % set(gcf,'defaultAxesColorOrder',[cmap(1,:).*.8; right_color]);
 
 
 
@@ -53,7 +58,7 @@ for aspect_num=1:length(aspects)
 
   yyaxis left
   
-  bh = bar(bar_data,'stacked');
+  bh = bar([100-percent_out_of_contact; percent_out_of_contact]','stacked');
   hold on
 
   ylabel(aspect.ylabel_left, 'Interpreter','none','FontName','Yu Gothic UI');
@@ -68,19 +73,21 @@ for aspect_num=1:length(aspects)
     yyaxis left
     txt = sprintf('%.0f%%', percent_out_of_contact(n));
     x=n
-    y=sum(bar_data(n,:))-15
-    h = text(x, y,txt,'Color',[.1 .1 .1],'FontSize',14,'FontName','Yu Gothic UI Light','HorizontalAlignment','center');
+    y=99 % a bit less than 100%
     % Lower bar percentage
     txt = sprintf('%.0f%%', 100-percent_out_of_contact(n));
-    h = text(x, y-bar_data(n,2),txt,'Color',[.1 .1 .1],'FontSize',14,'FontName','Yu Gothic UI Light','HorizontalAlignment','center');
+    h = text(x, 100-percent_out_of_contact(n)-1,txt,'Color',[.1 .1 .1],'FontSize',14,'FontName','Yu Gothic UI Light','HorizontalAlignment','center');
+    txt = sprintf('%.0f%%', percent_out_of_contact(n));
+    h = text(x, y,txt,'Color',[.1 .1 .1],'FontSize',14,'FontName','Yu Gothic UI Light','HorizontalAlignment','center');
 
-    % Median line
+
+    % Mean line
     yyaxis right
     txt = sprintf('median=%.0fnm', medians(n));
-    h = text(x, medians(n)+10,txt,'Color',[1 .125 .05],'FontSize',14,'FontName','Yu Gothic UI Light','HorizontalAlignment','center');
+    h = text(x, medians(n)+15,txt,'Color',[.85 .325 .098],'FontSize',14,'FontName','Yu Gothic UI','HorizontalAlignment','center');
     % Mean line
     txt = sprintf('mean=%.0fnm', means(n));
-    h = text(x, means(n)+10,txt,'Color',[1 .125 .05],'FontSize',14,'FontName','Yu Gothic UI Light','HorizontalAlignment','center');
+    h = text(x, means(n)+15,txt,'Color',[.85 .325 .098],'FontSize',14,'FontName','Yu Gothic UI','HorizontalAlignment','center');
   end
 
   % Plot Average (using a right side y axis)
@@ -121,49 +128,45 @@ for aspect_num=1:length(aspects)
   title(aspect.title,'Interpreter','none','FontName','Yu Gothic UI Light');
 
   % Set y values in nanometers
-  % yt=yticks;
-  % a=sprintfc('%dpx',yt);
-  % c=sprintfc('%.2fnm',yt.*1/48);
-  % b=sprintfc('%.2fnm(zoom)',yt.*1/90);
-  % a = strcat(a, ", ", c);
-  % a = strcat(a, ", ", b);
-  % ticklabels = cellstr(a);
-  % yticklabels(ticklabels);
-  % set(gca,'TickLabelInterpreter','none');
-  % ytickangle(-45);
   yt=yticks;
   ticklabels=sprintfc('%dnm',yt);
   yticklabels(ticklabels);
   set(gca,'TickLabelInterpreter','none');
-  % ytickangle(-45);
 
-  % Make smaller tick names;
+  yyaxis left
+  yt=yticks;
+  ticklabels=sprintfc('%d%%',yt);
+  yticklabels(ticklabels);
+  set(gca,'TickLabelInterpreter','none');
+
+  yyaxis right
   Fontsize2 = 15;
   ylabel(aspect.ylabel_right, 'Interpreter','none','FontName','Yu Gothic UI');
   xl = get(gca,'YLabel');
   xlFontSize = get(xl,'FontSize')
   xAY = get(gca,'YAxis');
-  set(xAY,'FontSize', Fontsize2)
+  set(xAY,'FontSize', Fontsize2);
   set(xl, 'FontSize', xlFontSize);
   yyaxis left
   xl = get(gca,'YLabel');
   xAY = get(gca,'YAxis');
   set(xl, 'FontSize', xlFontSize);
  
-  % Make smaller tick names;
+  % axes;
   xlabel('Experiment','FontName','Yu Gothic UI');
   Fontsize1 = 15;
   xl = get(gca,'XLabel');
   xlFontSize = get(xl,'FontSize');
   xAX = get(gca,'XAxis');
-  set(xAX,'FontSize', Fontsize1)
+  set(xAX,'FontSize', Fontsize1);
   set(xl, 'FontSize', xlFontSize);
 
 
 
 
+
   if SAVE_TO_DISK
-    fig_name = ['3_bar_plot_within_contact'];
+    fig_name = ['3_bar_plot_within_contact_percent'];
     export_fig([fig_save_path fig_name '.png'],'-m2');
   end
 end

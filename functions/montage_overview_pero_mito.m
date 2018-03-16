@@ -18,8 +18,10 @@ for typ=fields(s)'
       hold on
       fig_name = ['bw montage ' typ ' stack ' num2str(sid) ' ' montage_name];
       text(0.01,.99,fig_name,'FontSize',14,'Units','normalized','Interpreter','none','Color','white','HorizontalAlignment','left','VerticalAlignment','top');
-      export_fig([fig_save_path fig_name '.png'],'-m2');
-      close all
+      if SAVE_TO_DISK
+        export_fig([fig_save_path fig_name '.png'],'-m2');
+        close all
+      end
     end
   end
 end
