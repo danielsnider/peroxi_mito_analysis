@@ -1,6 +1,7 @@
 
 %% Distance to nearest Mito
-figure
+figure('Position',[1 1 1201 809])
+subplot(1,2,1)
 for trace_id=unique(T.Trace)'
   TraceTable = T(ismember(T.Trace,trace_id),:);
   Y = TraceTable.Distance;
@@ -27,15 +28,16 @@ set(gca,'GridAlpha',1);
 set(gca,'GridColor',[1 1 1]);
 set(gca,'LineWidth',2);
 title({'Proxisome Distance Traces',''},'Interpreter','none','FontName','Yu Gothic UI Light');
-text(.5,1.04,'Each line traces the distance of one peroxisome over time.','FontSize', 17, 'FontName','Yu Gothic UI Light','HorizontalAlignment', 'center', 'Units','normalized', 'Interpreter','none');
+text(.5,1.025,'Each line traces the distance of one peroxisome over time.','FontSize', 17, 'FontName','Yu Gothic UI Light','HorizontalAlignment', 'center', 'Units','normalized', 'Interpreter','none');
 ylabel('Distance (px)', 'Interpreter','none','FontName','Yu Gothic UI');
 xlabel('Timpoint (a.u.)', 'Interpreter','none','FontName','Yu Gothic UI');
 
 % Stack Type Text
 txt = sprintf('Type: %s\nCell: %d', typ, stack_id);
-text(.99,.95,txt,'FontSize', 12, 'FontName','Yu Gothic UI','HorizontalAlignment', 'right', 'Units','normalized', 'Interpreter','none');
+text(.99,.97,txt,'FontSize', 13, 'FontName','Yu Gothic UI','HorizontalAlignment', 'right', 'Units','normalized', 'Interpreter','none');
 
 if SAVE_TO_DISK
+  pause(0.1)
   fig_name = sprintf('/1_distance_vs_time_traces type_%s cell_%d',typ,stack_id);
   export_fig([fig_save_path fig_name '.png'],'-m2');
 end

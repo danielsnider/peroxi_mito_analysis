@@ -63,7 +63,7 @@ for typ=fields(s)'
       composite_img = color_pero + color_mito;
 
       % Display original image
-      figure
+      figure('Position',[1 1 2560 1276])
       imshow(composite_img,[]);
       hold on
 
@@ -127,8 +127,8 @@ for typ=fields(s)'
         text_extent = cat(1,h.Extent);
         text_extent_total_x = text_extent(:,1) + text_extent(:,3);
         text_extent_total_y = text_extent(:,2) + text_extent(:,4);
-        delete(h(text_extent_total_x > x_res));
-        delete(h(text_extent_total_y > y_res));
+        %delete(h(text_extent_total_x > x_res));
+        %delete(h(text_extent_total_y > y_res));
 
         %% Display trace ID
         h = text(PeroCentroidsXY(1,:)'-12*img_size_factor,PeroCentroidsXY(2,:)',all_trace_ids_short','Color','white','FontSize',12,'Clipping','on','Interpreter','none');
@@ -136,8 +136,8 @@ for typ=fields(s)'
         text_extent = cat(1,h.Extent);
         text_extent_total_x = text_extent(:,1) + text_extent(:,3);
         text_extent_total_y = text_extent(:,2) + text_extent(:,4);
-        delete(h(text_extent_total_x <= 0));
-        delete(h(text_extent_total_y <= 0));
+        %delete(h(text_extent_total_x > x_res));
+        %delete(h(text_extent_total_y > y_res));
 
       % NOT ENOUGH SIGNAL IN IMAGE, display warning
       else
@@ -171,11 +171,11 @@ for typ=fields(s)'
       end
       h = text(10,30,txt,'Color','white','FontSize',16,'Clipping','on','HorizontalAlignment','left','Interpreter','none');
 
-      unique_labelled_perim = unique(labelled_perim)
-      size_ObjectsInFrame = size(ObjectsInFrame)
-      size_labelled_perim = size(unique(labelled_perim))
-      size_im_pero_ws = size(unique(im_pero_ws))
-      size_cmap = size(cmap)
+      % unique_labelled_perim = unique(labelled_perim)
+      % size_ObjectsInFrame = size(ObjectsInFrame)
+      % size_labelled_perim = size(unique(labelled_perim))
+      % size_im_pero_ws = size(unique(im_pero_ws))
+      % size_cmap = size(cmap)
 
 
       if SAVE_TO_DISK
@@ -186,6 +186,7 @@ for typ=fields(s)'
             m=uint8(zeros(size(imageData,1),size(imageData,2),3,timepoints));
         end
         size_imageData = size(imageData)
+        imageData = imageData(1:size(m,1),1:size(m,2),:);
         m(:,:,:,tid) = imageData;
 
         close all

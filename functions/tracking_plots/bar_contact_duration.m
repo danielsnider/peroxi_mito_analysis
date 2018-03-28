@@ -25,13 +25,18 @@ for trace_id=unique(T.Trace)'
 end
 
 % Calculate cumulative amounts for each bar
+cumulative_durations = [];
 num_bars = max(contact_durations);
+if isempty(num_bars)
+    num_bars = 1;
+end
 for i=1:num_bars
   cumulative_durations(i) = sum(contact_durations==i);
 end
 
 % Plot
-figure
+figure('Position',[1 1 1201 809])
+subplot(1,2,1)
 bh = bar(1:num_bars,cumulative_durations);
 
 % Set Style for bars
@@ -49,7 +54,7 @@ set(gca,'GridAlpha',1);
 set(gca,'GridColor',[1 1 1]);
 set(gca,'LineWidth',2);
 title({'Duration of Contact',''},'Interpreter','none','FontName','Yu Gothic UI Light');
-text(.5,1.04,'Contact is defined as touching or within one pixel.','FontSize', 17, 'FontName','Yu Gothic UI Light','HorizontalAlignment', 'center', 'Units','normalized');
+text(.5,1.025,'Contact is defined as touching or within one pixel.','FontSize', 17, 'FontName','Yu Gothic UI Light','HorizontalAlignment', 'center', 'Units','normalized');
 ylabel('Count', 'Interpreter','none','FontName','Yu Gothic UI');
 xlabel('Number of Timepoints in Contact (Duration)', 'Interpreter','none','FontName','Yu Gothic UI');
 
@@ -69,10 +74,11 @@ set(xl, 'FontSize', xlFontSize);
 
 % Stack Type Text
 txt = sprintf('Type: %s\nCell: %d', typ, stack_id);
-text(.99,.95,txt,'FontSize', 12, 'FontName','Yu Gothic UI','HorizontalAlignment', 'right', 'Units','normalized', 'Interpreter','none');
+text(.99,.97,txt,'FontSize', 13, 'FontName','Yu Gothic UI','HorizontalAlignment', 'right', 'Units','normalized', 'Interpreter','none');
 
 if SAVE_TO_DISK
-  fig_name = sprintf('/1_bar_contact_duration type_%s stack_%d',typ,stack_id);
+  pause(0.1)
+  fig_name = sprintf('/2_bar_contact_duration type_%s cell_%d',typ,stack_id);
   export_fig([fig_save_path fig_name '.png'],'-m2');
 end
 
@@ -112,7 +118,8 @@ for i=1:num_bars
 end
 
 % Plot
-figure
+figure('Position',[1 1 1201 809])
+subplot(1,2,1)
 bh = bar(1:num_bars,cumulative_durations);
 
 % Set Style for bars
@@ -130,7 +137,7 @@ set(gca,'GridAlpha',1);
 set(gca,'GridColor',[1 1 1]);
 set(gca,'LineWidth',2);
 title({'Duration of Contact',''},'Interpreter','none','FontName','Yu Gothic UI Light');
-text(.5,1.04,'Contact is defined as touching or within one pixel.','FontSize', 17, 'FontName','Yu Gothic UI Light','HorizontalAlignment', 'center', 'Units','normalized');
+text(.5,1.025,'Contact is defined as touching or within one pixel.','FontSize', 17, 'FontName','Yu Gothic UI Light','HorizontalAlignment', 'center', 'Units','normalized');
 ylabel('Count', 'Interpreter','none','FontName','Yu Gothic UI');
 xlabel({'Meet or Exceed Number of', 'Timepoints in Contact (Duration)'}, 'Interpreter','none','FontName','Yu Gothic UI');
 
@@ -150,10 +157,11 @@ set(xl, 'FontSize', xlFontSize);
 
 % Stack Type Text
 txt = sprintf('Type: %s\nCell: %d', typ, stack_id);
-text(.99,.95,txt,'FontSize', 12, 'FontName','Yu Gothic UI','HorizontalAlignment', 'right', 'Units','normalized', 'Interpreter','none');
+text(.99,.97,txt,'FontSize', 13, 'FontName','Yu Gothic UI','HorizontalAlignment', 'right', 'Units','normalized', 'Interpreter','none');
 
 if SAVE_TO_DISK
-  fig_name = sprintf('/1_bar_contact_duration_cumulative type_%s cell_%d',typ,stack_id);
+  pause(0.1)
+  fig_name = sprintf('/3_bar_contact_duration_cumulative type_%s cell_%d',typ,stack_id);
   export_fig([fig_save_path fig_name '.png'],'-m2');
 end
 
