@@ -1,0 +1,160 @@
+
+%% Duration of Contact
+CONTACT_THRESH_PX = 1;
+contact_durations = [];
+for trace_id=unique(T.Trace)'
+  TraceTable = T(ismember(T.Trace,trace_id),:);
+  distances = TraceTable.Distance;
+  in_contact_timepoints = distances<=CONTACT_THRESH_PX;
+  % Example: in_contact_timepoints                             = [0 1 0 1 1 0 0 1 1 1 0 1 1 0 1 1] 
+  % Example after calculation finishes: in_contact_duration    = [0 1 0 1 2 0 0 1 2 3 0 1 1 0 1 1]
+  % Example after calculation finishes: contact_durations      = [  1     2         3   2     2  ]
+  in_contact_duration = [0];
+  for i=2:length(in_contact_timepoints)
+    if in_contact_timepoints(i)==0
+      in_contact_duration(i) = 0;
+    else
+      in_contact_duration(i) = in_contact_duration(i-1)+1;
+    end
+  end
+  for i=fliplr(2:length(in_contact_duration))
+    if in_contact_duration(i)==0 && in_contact_duration(i-1) > 0
+      contact_durations = [contact_durations in_contact_duration(i-1)];
+    end
+  end
+end
+
+% Calculate cumulative amounts for each bar
+num_bars = max(contact_durations);
+for i=1:num_bars
+  cumulative_durations(i) = sum(contact_durations==i);
+end
+
+% Plot
+figure
+bh = bar(1:num_bars,cumulative_durations);
+
+% Set Style for bars
+for i=1:length(bh)
+  set(bh(i), 'LineWidth',2,'FaceColor',[.85 .325 .098],'EdgeColor',[.85 .325 .098].*.6);
+end
+
+% Style
+set(gca,'FontSize',20);
+set(gcf,'Color',[1 1 1 ]);
+set(gca,'Color',[.95 .95 .95 ]);
+grid on
+box off;
+set(gca,'GridAlpha',1);
+set(gca,'GridColor',[1 1 1]);
+set(gca,'LineWidth',2);
+title({'Duration of Contact',''},'Interpreter','none','FontName','Yu Gothic UI Light');
+text(.5,1.04,'Contact is defined as touching or within one pixel.','FontSize', 17, 'FontName','Yu Gothic UI Light','HorizontalAlignment', 'center', 'Units','normalized');
+ylabel('Count', 'Interpreter','none','FontName','Yu Gothic UI');
+xlabel('Number of Timepoints in Contact (Duration)', 'Interpreter','none','FontName','Yu Gothic UI');
+
+%% XTicks
+% Units for XTicks
+xt=xticks;
+ticklabels=sprintfc('%d',xt);
+xticklabels(ticklabels);
+set(gca,'TickLabelInterpreter','none');
+% Size for XTicks
+Fontsize1 = 18;
+xl = get(gca,'XLabel');
+xlFontSize = get(xl,'FontSize');
+xAX = get(gca,'XAxis');
+set(xAX,'FontSize', Fontsize1);
+set(xl, 'FontSize', xlFontSize);
+
+% Stack Type Text
+txt = sprintf('Type: %s\nCell: %d', typ, stack_id);
+text(.99,.95,txt,'FontSize', 12, 'FontName','Yu Gothic UI','HorizontalAlignment', 'right', 'Units','normalized', 'Interpreter','none');
+
+if SAVE_TO_DISK
+  fig_name = sprintf('/1_bar_contact_duration type_%s stack_%d',typ,stack_id);
+  export_fig([fig_save_path fig_name '.png'],'-m2');
+end
+
+
+
+
+
+%% Duration of Contact (CUMULATIVE)
+CONTACT_THRESH_PX = 1;
+contact_durations = [];
+for trace_id=unique(T.Trace)'
+  TraceTable = T(ismember(T.Trace,trace_id),:);
+  distances = TraceTable.Distance;
+  in_contact_timepoints = distances<=CONTACT_THRESH_PX;
+  % Example: in_contact_timepoints                             = [0 1 0 1 1 0 0 1 1 1 0 1 1 0 1 1] 
+  % Example after calculation finishes: in_contact_duration    = [0 1 0 1 2 0 0 1 2 3 0 1 1 0 1 1]
+  % Example after calculation finishes: contact_durations      = [  1     2         3   2     2  ]
+  in_contact_duration = [0];
+  for i=2:length(in_contact_timepoints)
+    if in_contact_timepoints(i)==0
+      in_contact_duration(i) = 0;
+    else
+      in_contact_duration(i) = in_contact_duration(i-1)+1;
+    end
+  end
+  for i=fliplr(2:length(in_contact_duration))
+    if in_contact_duration(i)==0 && in_contact_duration(i-1) > 0
+      contact_durations = [contact_durations in_contact_duration(i-1)];
+    end
+  end
+end
+
+% Calculate cumulative amounts for each bar
+num_bars = max(contact_durations);
+for i=1:num_bars
+  cumulative_durations(i) = sum(contact_durations>=i);
+end
+
+% Plot
+figure
+bh = bar(1:num_bars,cumulative_durations);
+
+% Set Style for bars
+for i=1:length(bh)
+  set(bh(i), 'LineWidth',2,'FaceColor',[.85 .325 .098],'EdgeColor',[.85 .325 .098].*.6);
+end
+
+% Style
+set(gca,'FontSize',20);
+set(gcf,'Color',[1 1 1 ]);
+set(gca,'Color',[.95 .95 .95 ]);
+grid on
+box off;
+set(gca,'GridAlpha',1);
+set(gca,'GridColor',[1 1 1]);
+set(gca,'LineWidth',2);
+title({'Duration of Contact',''},'Interpreter','none','FontName','Yu Gothic UI Light');
+text(.5,1.04,'Contact is defined as touching or within one pixel.','FontSize', 17, 'FontName','Yu Gothic UI Light','HorizontalAlignment', 'center', 'Units','normalized');
+ylabel('Count', 'Interpreter','none','FontName','Yu Gothic UI');
+xlabel({'Meet or Exceed Number of', 'Timepoints in Contact (Duration)'}, 'Interpreter','none','FontName','Yu Gothic UI');
+
+%% XTicks
+% Units for XTicks
+xt=xticks;
+ticklabels=sprintfc('>=%d',xt);
+xticklabels(ticklabels);
+set(gca,'TickLabelInterpreter','none');
+% Size for XTicks
+Fontsize1 = 18;
+xl = get(gca,'XLabel');
+xlFontSize = get(xl,'FontSize');
+xAX = get(gca,'XAxis');
+set(xAX,'FontSize', Fontsize1);
+set(xl, 'FontSize', xlFontSize);
+
+% Stack Type Text
+txt = sprintf('Type: %s\nCell: %d', typ, stack_id);
+text(.99,.95,txt,'FontSize', 12, 'FontName','Yu Gothic UI','HorizontalAlignment', 'right', 'Units','normalized', 'Interpreter','none');
+
+if SAVE_TO_DISK
+  fig_name = sprintf('/1_bar_contact_duration_cumulative type_%s cell_%d',typ,stack_id);
+  export_fig([fig_save_path fig_name '.png'],'-m2');
+end
+
+

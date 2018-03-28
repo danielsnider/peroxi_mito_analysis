@@ -11,10 +11,11 @@ max_area = 5000;
 ONE_ONLY = false;
 TEST_ONE_FIG = false;
 SAVE_TO_DISK = true;
-SAVE_NAME_PREFIX = 'from_middle_';
+SAVE_FIG_MAG = '-m1';
+SAVE_NAME_PREFIX = 'from_edge_';
 
-EDGE_TO_EDGE_DISTANCE = false;
-CONTACT_DIST_NM = 100;
+EDGE_TO_EDGE_DISTANCE = true;
+CONTACT_DIST_NM = 150;
 
 MIN_INTENSITY_MAP = containers.Map;
 MIN_INTENSITY_MAP('raw') = 0; % 1500000
@@ -43,8 +44,9 @@ addpath('C:\Users\daniel snider\Dropbox\Kafri\Projects\GUI\plugins\segmentation\
 % Setup
 date_str = datestr(now,'yyyymmddTHHMMSS');
 save_dir = 'saved_figs';
-fig_save_path = sprintf('%s/%s/%s', save_dir, date_str, SAVE_NAME_PREFIX);
+fig_save_path = sprintf('%s/%s/', save_dir, date_str);
 mkdir(fig_save_path);
+fig_save_path = sprintf('%s/%s', fig_save_path, SAVE_NAME_PREFIX);
 
 % Pick a stack
 series_id = 1; % OME starts at 0
@@ -83,6 +85,8 @@ segment_pero_seed_watershed
 % Calculating
 measure_dist_pero_to_mito
 
+break_
+
 % V1 V2
 % montage_pero_ws_shuffle_on_grey
 % montage_mito_red_outline_on_grey
@@ -109,8 +113,8 @@ measure_dist_pero_to_mito
 
 
 %% V3
-montage_pero_ws_shuffle_on_grey
-montage_mito_red_outline_on_grey
+%montage_pero_ws_shuffle_on_grey
+%montage_mito_red_outline_on_grey
 visualize_pero_and_mito_with_distances
 plot_ksdensity_histogram_distance
 plot_bar_grouped_by_type_num_pero

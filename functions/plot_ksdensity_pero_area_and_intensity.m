@@ -39,7 +39,6 @@ aspects(n).average_only = false;
 %   aspects(length(aspects)+1)=aspect
 % end
 
-CONTACT_DIST_NM = 200;
 
 for aspect_num=1:length(aspects)
   if TEST_ONE_FIG

@@ -33,8 +33,6 @@ aspects(n).Y = 'Distances';
 aspects(n).xlabel = 'Total Intensity of Single Peroxisomes (a.u.)';
 aspects(n).ylabel = 'Distance to Nearest Mitochondria (px)';
 
-CONTACT_DIST_NM = 200;
-
 for aspect_num=1:length(aspects)
   if TEST_ONE_FIG
     clf('reset')

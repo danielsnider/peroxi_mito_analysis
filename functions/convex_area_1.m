@@ -24,7 +24,7 @@ for typ=fields(s_mid)'
     end
 
     if ONE_ONLY
-      break
+      return
     end
   end
 end

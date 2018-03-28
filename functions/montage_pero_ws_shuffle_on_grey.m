@@ -1,3 +1,5 @@
+log_msg(sprintf('[%s]: %s', mfilename(), 'Montage pero...'));
+
 %% Make montages of watershed
 % Loop over stack types
 for typ=fields(s_mid)'
@@ -35,7 +37,8 @@ for typ=fields(s_mid)'
       return
     end
     % Store result
-    [imageData, alpha] = export_fig('ws_out.png','-m2');
+    fig_name = sprintf('single pero %s stack %03d',typ, z);
+    [imageData, alpha] = export_fig([fig_save_path fig_name '.png'],'-m2');
     if isempty(m)
         m=uint8(zeros(size(imageData,1),size(imageData,2),3,z_depth));
     end
@@ -47,8 +50,9 @@ for typ=fields(s_mid)'
   figure
   montage(uint8(m),'DisplayRange',[]);
   hold on
-  fig_name = [typ ' Peroxi Segments'];
-  text(0.01,.99,fig_name,'FontSize',14,'Units','normalized','Interpreter','none','Color','white','HorizontalAlignment','left','VerticalAlignment','top');
-  export_fig([fig_save_path fig_name '.png'],'-m2');
+  fig_name = [ 'montage pero' typ ''];
+  save_path = [fig_save_path fig_name '.png'];
+  text(0.01,.99,fig_name,'FontSize',14,'Units','normalized','Interpreter','none','Color','white','HorizontalAlignment','left','VerticalAlignment','top','Interpreter','none');
+  imwrite(getimage(gca),save_path);
   close all
 end

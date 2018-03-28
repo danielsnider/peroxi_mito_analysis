@@ -1,3 +1,6 @@
+log_msg(sprintf('[%s]: %s', mfilename(), 'Montage overview...'));
+
+
 %% Make montages
 montages_to_make = {...
   'pero', ...
@@ -16,7 +19,7 @@ for typ=fields(s)'
       figure
       montage(m,'DisplayRange',[0 prctile(m(:),99.5)]);
       hold on
-      fig_name = ['bw montage ' typ ' stack ' num2str(sid) ' ' montage_name];
+      fig_name = sprintf('bw montage %s stack %03d %s',typ, sid, montage_name);
       text(0.01,.99,fig_name,'FontSize',14,'Units','normalized','Interpreter','none','Color','white','HorizontalAlignment','left','VerticalAlignment','top');
       if SAVE_TO_DISK
         export_fig([fig_save_path fig_name '.png'],'-m2');

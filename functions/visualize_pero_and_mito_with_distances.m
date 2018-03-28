@@ -1,3 +1,4 @@
+log_msg(sprintf('[%s]: %s', mfilename(), 'Visualizing Distances...'));
 
 pero_ch_color = [0 1 0];
 mito_ch_color = [1 0 0];
@@ -6,6 +7,7 @@ mito_perim_color = [1 .5 .5];
 
 
 % Loop over stack types
+% for typ={'zoom_raw'}
 for typ=fields(s_mid)'
   typ=typ{:};
   pero_stack = s_mid.(typ).pero;
@@ -63,7 +65,13 @@ for typ=fields(s_mid)'
     %% Convex Hull and Area
     if any_objects
       XY=s_mid.(typ).ConvexHull{z};
-      patch(XY(:,1), XY(:,2),'r', 'EdgeColor','red','FaceColor','none','LineWidth',2)
+      line_width = 2;
+      XY(XY<line_width)=line_width; % shift cell boundaries inwards so that a thickened line does not go over the bounds of the image
+      XY(XY>x_res-2)=x_res-2; % shift cell boundaries inwards so that a thickened line does not go over the bounds of the image
+
+      patch(XY(:,1), XY(:,2),'r', 'EdgeColor','red','FaceColor','none','LineWidth',line_width)
+      ax = gca;               % get the current axis
+      ax.Clipping = 'on';    % turn clipping off
     end
 
     % Display color overlay (Mito)
@@ -116,16 +124,17 @@ for typ=fields(s_mid)'
     end    
     if SAVE_TO_DISK
       % Store result
-      sli = size(labelled_img)
-      fig_name = [ 'single ' typ ' stack ' num2str(z)];
+      fig_name = sprintf('distance single %s stack %03d',typ, z);
       [imageData, alpha] = export_fig([fig_save_path fig_name '.png'],'-m2');
       if isempty(m)
           m=uint8(zeros(size(imageData,1),size(imageData,2),3,z_depth));
       end
+      size_imageData = size(imageData)
       m(:,:,:,z) = imageData;
 
       close all
     end
+    break
   end
 
   % Create Montage
@@ -133,7 +142,7 @@ for typ=fields(s_mid)'
     figure
     montage(uint8(m),'DisplayRange',[]);
     hold on
-    fig_name = [ 'montage ' typ ''];
+    fig_name = [ 'distance montage ' typ ''];
     save_path = [fig_save_path fig_name '.png'];
     text(0.01,.99,fig_name,'FontSize',14,'Units','normalized','Interpreter','none','Color','white','HorizontalAlignment','left','VerticalAlignment','top','Interpreter','none');
     imwrite(getimage(gca),save_path);

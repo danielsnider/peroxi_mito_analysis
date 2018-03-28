@@ -28,8 +28,6 @@ aspects(n).xlabel = 'Distance Peroxisome to Nearest Mitochondria';
 aspects(n).ylabel = 'Probability';
 aspects(n).average_only = false;
 
-CONTACT_DIST_NM = 100;
-
 for aspect_num=1:length(aspects)
   if TEST_ONE_FIG
     figure;
@@ -213,7 +211,7 @@ for aspect_num=1:length(aspects)
     set(xl, 'FontSize', xlFontSize);
     
 
-    title_ = sprintf('%s (n_stacks=%d, n_peroxisomes=%d)',type_namemap(typ), length(legend_names)-3, num_pero);
+    title_ = sprintf('%s (n_stacks=%d, n_peroxisomes=%d)',type_namemap(typ), length(legend_names)-4, num_pero);
     title(title_,'Interpreter','none','FontName','Yu Gothic UI Light');
     
 

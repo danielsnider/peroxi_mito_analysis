@@ -28,7 +28,6 @@ aspects(n).xlabel = 'Distance Peroxisome to Nearest Mitochondria';
 aspects(n).ylabel = 'Probability';
 aspects(n).average_only = false;
 
-CONTACT_DIST_NM = 400;
 
 for aspect_num=1:length(aspects)
   if TEST_ONE_FIG

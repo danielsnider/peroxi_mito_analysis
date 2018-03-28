@@ -15,6 +15,8 @@ for typ=fields(s_mid)'
     iterT.PeroArea = cat(1,s_mid.(typ).PeroArea{image_id});
     iterT.PeroMeanIntensity = cat(1,s_mid.(typ).PeroMeanIntensity{image_id});
     iterT.PeroTotalIntensity = cat(1,s_mid.(typ).PeroTotalIntensity{image_id});
+    iterT.ConvexAreaPX = zeros(length(Distances),1)+s_mid.(typ).ConvexAreaPX(image_id);
+    iterT.ConvexAreaSqrUM = zeros(length(Distances),1)+s_mid.(typ).ConvexAreaSqrUM(image_id);
     T = [T; iterT];
   end
 
