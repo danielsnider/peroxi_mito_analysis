@@ -125,4 +125,30 @@ function [CellsTable,diffTable] = cell_tracking_v1_simple(CellsTable, composite_
      cells_entering_frame = CellsTable.Timepoint==current_timepoint & strcmp(CellsTable.Trace,'None');
      CellsTable.Trace(cells_entering_frame) = uuid_array(sum(cells_entering_frame));
   end
+
+
+
+  %% Calculate Color Based on ID
+  all_trace_ids_short = {};
+  cmap = [];
+  for i=1:height(CellsTable)
+    trace = CellsTable.Trace{i};
+    trace = strsplit(trace,'-');
+    red = mod(sum(uint8(trace{1})),255);
+    green = mod(sum(uint8(trace{2})),255);
+    blue = mod(sum(uint8(trace{3})),255);
+    cmap = [cmap; red/382+.333 green/382+.333 blue/382+.333];
+    all_trace_ids_short{i} = trace{1}(1:2);
+  end
+
+  %% Save short ID
+  CellsTable.TraceShort = all_trace_ids_short';
+  CellsTable.TraceColor = cmap;
+
+  % Drop Unneeded/Confusing Columns
+  CellsTable.TraceUsed = [];
+
+  
+
+
 end

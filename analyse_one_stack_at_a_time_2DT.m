@@ -1,7 +1,14 @@
+thresh_mito_prctile = 93;
+thresh_pero_prctile = 99.6;
+min_area = 25;
+max_area = 5000;
 
-count = 0;
+s_all=s;
+ResultsTable = table();
+all_contact_durations = [];
 
 % Loop over stack types
+count = 0;
 for typ={'zoom_decon'}
   typ=typ{:};
   % Loop over stacks of this type
@@ -11,13 +18,18 @@ for typ={'zoom_decon'}
     s.(typ) = s_all.(typ)(sid);
     stack_id = sid;
 
-%     % Skip if user wants to
-%     num_timepoints = size(s.(typ).pero_mid,3);
-%     txt = sprintf('Do you wish to analyze: Type=%s, StackNum=%d, Count=%d, Timepoints=%d\n(y/n): ',typ,sid,count,num_timepoints);
-%     user_command = input(txt,'s');
-%     if ismember(user_command,{'n','no',''})
-%       continue
-%     end
+    % Skip if user wants to
+    num_timepoints = size(s.(typ).pero_mid,3);
+    txt = sprintf('Do you wish to analyze: Type=%s, StackNum=%d, Count=%d, Timepoints=%d\n(y/n): ',typ,sid,count,num_timepoints);
+    user_command = input(txt,'s');
+    if ismember(user_command,{'n','no',''})
+      continue
+    end
+
+    % % Limit timepoints for quick debugging
+    % s.(typ).pero_mid = s.(typ).pero_mid(:,:,end-1:end);
+    % s.(typ).mito_mid = s.(typ).mito_mid(:,:,end-1:end);
+    % s.(typ).timepoints = 2;
 
     % Segmenting
     thresh_mito_2DT
@@ -40,18 +52,23 @@ for typ={'zoom_decon'}
     %% TRACK CELLS
     [T,DiffTable] = cell_tracking_v1_simple(T, composite_differences);
 
+    %% Remove Short Tracks
+    remove_short_tracks
+
     % Visualize (v4 - Tracking 1st)
     visualize_pero_and_mito_with_distances_2DT
     
     % Save Table
     save_table_pero_2DT
+    ResultsTable = [ResultsTable; T];
 
     % Plot 
-    bar_contact_duration
-    frame_to_frame_changes_distance_vs_time
+    calc_contact_durations
+    %bar_contact_duration
+    %frame_to_frame_changes_distance_vs_time
 
-%     pause
-%     pause
-    close all
+     pause
+     pause
+   % close all
   end
 end

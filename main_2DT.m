@@ -22,7 +22,7 @@ max_area = 5000;
 ONE_ONLY = false;
 TEST_ONE_FIG = false;
 SAVE_TO_DISK = true;
-SAVE_FIG_MAG = '-m1';
+SAVE_FIG_MAG = '-m0.5';
 
 CONTACT_DIST_NM = 150;
 

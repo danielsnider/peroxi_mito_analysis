@@ -26,10 +26,10 @@ for typ=fields(s)'
       filled_img = imfill(bordercleared_img,'holes');
 
       % Join overly cut objects
-      joined_img = JoinCutObjects(filled_img);
+      % joined_img = JoinCutObjects(filled_img);
 
       % Remove segments that don't have a seed
-      reconstruct_img = imreconstruct(logical(seeds),logical(joined_img));
+      reconstruct_img = imreconstruct(logical(seeds),logical(filled_img));
       labelled_img = bwlabel(reconstruct_img);
       % Remove objects that are too small or too large
       stats = regionprops(labelled_img,'area');
@@ -40,6 +40,7 @@ for typ=fields(s)'
 
       % Store result
       s.(typ)(sid).pero_ws(:,:,tid) = bwlabel(labelled_img);
+      s.(typ)(sid).seeds(:,:,tid) = seeds;
     end
   end
   if ONE_ONLY

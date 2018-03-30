@@ -4,11 +4,26 @@ figure('Position',[1 1 1201 809])
 subplot(1,2,1)
 for trace_id=unique(T.Trace)'
   TraceTable = T(ismember(T.Trace,trace_id),:);
+  short_trace_id = TraceTable.TraceShort(1);
+  trace_color = TraceTable.TraceColor(1,:);
   Y = TraceTable.Distance;
   X = 1:length(Y); % Timepoints as 1,2,3, etc.
-  h=plot(X,Y,'-o','MarkerIndices',X);
+  h=plot(X,Y,'-o','MarkerIndices',X,'Color',trace_color);
   set(get(get(h,'Annotation'),'LegendInformation'),'IconDisplayStyle','off'); % disable legend
   hold on
+end
+
+
+% Text for trace ID (on top of lines)
+for trace_id=unique(T.Trace)'
+  TraceTable = T(ismember(T.Trace,trace_id),:);
+  short_trace_id = TraceTable.TraceShort(1);
+  trace_color = TraceTable.TraceColor(1,:);
+  Y = TraceTable.Distance;
+  [max_val, max_pos] = min(Y);
+  v_offset = max(ylim)*.015;
+  % text(max_pos, max_val+v_offset, short_trace_id, 'Color', 'black', 'FontName','Yu Gothic UI','HorizontalAlignment', 'center', 'FontSize', 12, 'FontWeight','bold');
+  text(max_pos, max_val+v_offset, short_trace_id, 'Color', trace_color/1.0, 'FontName','Yu Gothic UI','HorizontalAlignment', 'center', 'FontSize', 17, 'FontWeight','bold');
 end
 % % Thresholds for long, close contant
 % h=line([10 10], ylim,'Color','red');
@@ -37,8 +52,8 @@ txt = sprintf('Type: %s\nCell: %d', typ, stack_id);
 text(.99,.97,txt,'FontSize', 13, 'FontName','Yu Gothic UI','HorizontalAlignment', 'right', 'Units','normalized', 'Interpreter','none');
 
 if SAVE_TO_DISK
-  pause(0.1)
+  pause(0.33)
   fig_name = sprintf('/1_distance_vs_time_traces type_%s cell_%d',typ,stack_id);
-  export_fig([fig_save_path fig_name '.png'],'-m2');
+  export_fig([fig_save_path fig_name '.png'],SAVE_FIG_MAG);
 end
 

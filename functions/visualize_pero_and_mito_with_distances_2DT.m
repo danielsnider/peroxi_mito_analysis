@@ -17,6 +17,7 @@ for typ=fields(s)'
     pero_ws_stack = s.(typ)(sid).pero_ws;
     mito_thresh_stack = s.(typ)(sid).mito_thresh;
     timepoints = size(s.(typ)(sid).pero_mid,3);
+    stack_name = s.(typ)(sid).stack_name;
     m=[];
 
     % Loop over images in this stack
@@ -25,6 +26,7 @@ for typ=fields(s)'
       im_mito = mito_stack(:,:,tid);
       im_pero_ws = pero_ws_stack(:,:,tid);
       im_mito_thresh = mito_thresh_stack(:,:,tid);
+      ObjectsInFrame = T(T.Timepoint==tid,:);
       PeroCentroidsXY = s.(typ)(sid).PeroCentroidsXY{tid};
       MitoLocationsXY = s.(typ)(sid).MitoLocationsXY{tid};
       NearestMitoInd = s.(typ)(sid).NearestMitoInd{tid};
@@ -93,30 +95,20 @@ for typ=fields(s)'
         labelled_img = im_pero_ws;
         labelled_perim = imdilate(bwperim(labelled_img),strel('disk',dilate_factor));
         if ismember('Trace', T.Properties.VariableNames)
-          % Calculate RGB value given trace UUID
-          ObjectsInFrame = T(T.Timepoint==tid,:);
-          cmap = [0 0 0; 0 0 0]; % weird working cmap for traces
-          all_trace_ids_short = {};
-          for i=1:height(ObjectsInFrame)
-            Object = ObjectsInFrame(i,:);
-            trace = Object.Trace{:};
-            trace = strsplit(trace,'-');
-            red = mod(sum(uint8(trace{1})),255);
-            green = mod(sum(uint8(trace{2})),255);
-            blue = mod(sum(uint8(trace{3})),255);
-            cmap = [cmap; red/382+.333 green/382+.333 blue/382+.333];
-            all_trace_ids_short{i} = trace{1}(1:2);
-          end
+          cmap = [0 0 0; 0 0 0; ObjectsInFrame.TraceColor]; % weird working cmap for traces
+          all_trace_ids_short= ObjectsInFrame.TraceShort;
           labelled_perim=bwlabel(labelled_perim);
           im_pero_ws2 = im_pero_ws+2; % weird working cmap for traces
-          im_pero_ws2(im_pero_ws2==1)=0; % weird working cmap for traces
+          im_pero_ws2(im_pero_ws2==2)=0; % weird working cmap for traces
           im_pero_ws2(labelled_perim==0)=0; % weird working cmap for traces
+          im_pero_ws2(1)=1;
           labelled_rgb = label2rgb(im_pero_ws2, cmap, [1 1 1]); % Coloured by TraceID
+          % labelled_rgb = label2rgb(labelled_perim, cmap, [1 1 1]); % Coloured by TraceID
         else
           labelled_rgb = label2rgb(uint32(labelled_perim), [1 1 1], [1 1 1], 'shuffle'); % Coloured white
         end
         himage = imshow(im2uint8(labelled_rgb),[]);
-        himage.AlphaData = logical(labelled_perim)*1;
+        himage.AlphaData = logical(im_pero_ws2)*1;
 
         % Display distance lines
         quiver(PeroCentroidsXY(1, :), PeroCentroidsXY(2, :), MitoLocationsXY(1,NearestMitoInd) - PeroCentroidsXY(1, :), MitoLocationsXY(2, NearestMitoInd) - PeroCentroidsXY(2, :), 0, 'c');
@@ -131,7 +123,7 @@ for typ=fields(s)'
         %delete(h(text_extent_total_y > y_res));
 
         %% Display trace ID
-        h = text(PeroCentroidsXY(1,:)'-12*img_size_factor,PeroCentroidsXY(2,:)',all_trace_ids_short','Color','white','FontSize',12,'Clipping','on','Interpreter','none');
+        h = text(PeroCentroidsXY(1,:)'-12*img_size_factor,PeroCentroidsXY(2,:)',all_trace_ids_short,'Color','white','FontSize',12,'Clipping','on','Interpreter','none');
         % Delete text that goes off the screen
         text_extent = cat(1,h.Extent);
         text_extent_total_x = text_extent(:,1) + text_extent(:,3);
@@ -147,6 +139,7 @@ for typ=fields(s)'
       end
 
       % Display red dots for seeds
+      % seeds = s.(typ)(sid).seeds(:,:,tid);
       % seeds(labelled_img<1)=0;
       % [xm,ym]=find(seeds);
       % hold on
@@ -154,21 +147,25 @@ for typ=fields(s)'
 
 
       % Information Box
-      txt = sprintf('Name: %s Cell # %d\nSlice: %s\nPeroxisomes Count: %d\nConvex Area: %.0f px',type_namemap(typ),stack_id,USE_SLICE,length(PeroCentroidsXY), ConvexAreaPX);  % '%.1f um^2',ConvexAreaSqrUM
+      txt = sprintf('Slice: %s\nPeroxisomes Count: %d\nConvex Area: %.0f px\nName: %s',USE_SLICE,length(PeroCentroidsXY), ConvexAreaPX,stack_name); % '%.1f um^2',ConvexAreaSqrUM
       h = text(10,y_res-45,txt,'Color','white','FontSize',12,'Clipping','on','HorizontalAlignment','left','Interpreter','none');
 
       % Elapsed Time Text
-      series_id = s.(typ)(sid).series_id;
-      plane_id = tid*NUM_CHANS; 
-      t = omeMeta.getPlaneDeltaT(series_id-1, plane_id);
+      % series_id = s.(typ)(sid).series_id;
+      % plane_id = tid*NUM_CHANS; 
+      % t = omeMeta.getPlaneDeltaT(series_id-1, plane_id);
+      % frame_txt = sprintf('Frame: %d', tid);
+      % if ~isempty(t)
+      %   t_val = double(t.value());
+      %   t_unit = char(t.unit().getSymbol());
+      %   txt = sprintf('+%.3f %s\n%s', t_val, t_unit, frame_txt);
+      % else
+      %   txt = frame_txt;
+      % end
       frame_txt = sprintf('Frame: %d', tid);
-      if ~isempty(t)
-        t_val = double(t.value());
-        t_unit = char(t.unit().getSymbol());
-        txt = sprintf('+%.3f %s\n%s', t_val, t_unit, frame_txt);
-      else
-        txt = frame_txt;
-      end
+      t_val = 5.203*(tid-1);
+      t_unit = 's';
+      txt = sprintf('+%.3f %s\n%s', t_val, t_unit, frame_txt);
       h = text(10,30,txt,'Color','white','FontSize',16,'Clipping','on','HorizontalAlignment','left','Interpreter','none');
 
       % unique_labelled_perim = unique(labelled_perim)
@@ -181,13 +178,22 @@ for typ=fields(s)'
       if SAVE_TO_DISK
         % Store result
         fig_name = sprintf('/distance_visualization type_%s cell_%03d timepoint_%03d',typ, stack_id, tid);
-        [imageData, alpha] = export_fig([fig_save_path fig_name '.png'],'-m2');
+        [imageData, alpha] = export_fig([fig_save_path fig_name '.png'],SAVE_FIG_MAG);
         if isempty(m)
             m=uint8(zeros(size(imageData,1),size(imageData,2),3,timepoints));
         end
-        size_imageData = size(imageData)
-        imageData = imageData(1:size(m,1),1:size(m,2),:);
+
+        % Resize images to be the minimum common size in the X and Y
+        size_imageData = size(imageData) % debug only
+        min_x_res = min(size(m,1), size(imageData,1));
+        min_y_res = min(size(m,2), size(imageData,2));
+        m = m(1:min_x_res, 1:min_y_res, :,:); % minimum common size
+        imageData = imageData(1:min_x_res,1:min_y_res,:); % minimum common size
+
+        % Save result
         m(:,:,:,tid) = imageData;
+        % figure
+        % imshow3Dfull(permute(m,[1 2 4 3]))
 
         close all
       end
@@ -196,11 +202,12 @@ for typ=fields(s)'
       return
     end    
 
+
     % Create Gif
-    if SAVE_TO_DISK
-      fig_name = sprintf('/0_gif_distance_visualization type_%s cell_%03d.gif', typ, stack_id);
-      save_path = [fig_save_path fig_name];
-      colour_imgs_to_gif(m,save_path);
-    end
+    % if SAVE_TO_DISK
+    %   fig_name = sprintf('/0_gif_distance_visualization type_%s cell_%03d.gif', typ, stack_id);
+    %   save_path = [fig_save_path fig_name];
+    %   colour_imgs_to_gif(m,save_path);
+    % end
   end
 end
