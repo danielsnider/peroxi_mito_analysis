@@ -60,10 +60,11 @@ for series_id=1:omeMeta.getImageCount
   s.(typ)(idx).z_depth = size(stack_,3);
   s.(typ)(idx).timepoints = size(stack_,4);
   s.(typ)(idx).chan_num = size(stack_,5);
-  stack_name_pretty = strsplit(o,'Good');
+  stack_name_pretty = strsplit(stack_name,'x');
   stack_name_pretty = stack_name_pretty{2};
   s.(typ)(idx).stack_name = stack_name_pretty;
+  s.(typ)(idx).stack_id = series_id;
 end
 
-
+s_all=s;
 

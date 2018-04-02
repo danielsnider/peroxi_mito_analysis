@@ -1,4 +1,5 @@
 
+stack_name = s.(typ)(sid).stack_name;
 
 % Calculate count of contacts for each bar
 tally_contact_durations = [];
@@ -48,8 +49,8 @@ xAX = get(gca,'XAxis');
 set(xAX,'FontSize', Fontsize1);
 set(xl, 'FontSize', xlFontSize);
 
-% Stack Type Text
-txt = sprintf('Type: %s\nCell: %d', typ, stack_id);
+% Cell Name Text
+txt = sprintf('Cell Name: %s\n', stack_name);
 text(.99,.97,txt,'FontSize', 13, 'FontName','Yu Gothic UI','HorizontalAlignment', 'right', 'Units','normalized', 'Interpreter','none');
 
 if SAVE_TO_DISK
@@ -105,8 +106,8 @@ xAX = get(gca,'XAxis');
 set(xAX,'FontSize', Fontsize1);
 set(xl, 'FontSize', xlFontSize);
 
-% Stack Type Text
-txt = sprintf('Type: %s\nCell: %d', typ, stack_id);
+% Cell Name Text
+txt = sprintf('Cell Name: %s\n', stack_name);
 text(.99,.97,txt,'FontSize', 13, 'FontName','Yu Gothic UI','HorizontalAlignment', 'right', 'Units','normalized', 'Interpreter','none');
 
 if SAVE_TO_DISK

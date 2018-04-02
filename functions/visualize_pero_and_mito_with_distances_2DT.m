@@ -114,7 +114,7 @@ for typ=fields(s)'
         quiver(PeroCentroidsXY(1, :), PeroCentroidsXY(2, :), MitoLocationsXY(1,NearestMitoInd) - PeroCentroidsXY(1, :), MitoLocationsXY(2, NearestMitoInd) - PeroCentroidsXY(2, :), 0, 'c');
 
         %% Display amount of distances as text
-        h = text(PeroCentroidsXY(1,:)'+3*img_size_factor,PeroCentroidsXY(2,:)',cellstr(num2str(round(Distances'))),'Color','cyan','FontSize',12,'Clipping','on','Interpreter','none');
+        h = text(PeroCentroidsXY(1,:)'+4*img_size_factor,PeroCentroidsXY(2,:)',cellstr(num2str(round(Distances'))),'Color','cyan','FontSize',9,'Clipping','on','Interpreter','none');
         % Delete text that goes off the screen
         text_extent = cat(1,h.Extent);
         text_extent_total_x = text_extent(:,1) + text_extent(:,3);
@@ -123,7 +123,7 @@ for typ=fields(s)'
         %delete(h(text_extent_total_y > y_res));
 
         %% Display trace ID
-        h = text(PeroCentroidsXY(1,:)'-12*img_size_factor,PeroCentroidsXY(2,:)',all_trace_ids_short,'Color','white','FontSize',12,'Clipping','on','Interpreter','none');
+        h = text(PeroCentroidsXY(1,:)'-16*img_size_factor,PeroCentroidsXY(2,:)',all_trace_ids_short,'Color','white','FontSize',9,'Clipping','on','Interpreter','none');
         % Delete text that goes off the screen
         text_extent = cat(1,h.Extent);
         text_extent_total_x = text_extent(:,1) + text_extent(:,3);
@@ -147,8 +147,8 @@ for typ=fields(s)'
 
 
       % Information Box
-      txt = sprintf('Slice: %s\nPeroxisomes Count: %d\nConvex Area: %.0f px\nName: %s',USE_SLICE,length(PeroCentroidsXY), ConvexAreaPX,stack_name); % '%.1f um^2',ConvexAreaSqrUM
-      h = text(10,y_res-45,txt,'Color','white','FontSize',12,'Clipping','on','HorizontalAlignment','left','Interpreter','none');
+      txt = sprintf('Slice: %s\nPeroxisomes Count: %d\nConvex Area: %.0f px\n%s',USE_SLICE,length(PeroCentroidsXY), ConvexAreaPX,stack_name); % '%.1f um^2',ConvexAreaSqrUM
+      h = text(10,y_res-65,txt,'Color','white','FontSize',9,'Clipping','on','HorizontalAlignment','left','Interpreter','none');
 
       % Elapsed Time Text
       % series_id = s.(typ)(sid).series_id;
@@ -166,7 +166,7 @@ for typ=fields(s)'
       t_val = 5.203*(tid-1);
       t_unit = 's';
       txt = sprintf('+%.3f %s\n%s', t_val, t_unit, frame_txt);
-      h = text(10,30,txt,'Color','white','FontSize',16,'Clipping','on','HorizontalAlignment','left','Interpreter','none');
+      h = text(10,50,txt,'Color','white','FontSize',16,'Clipping','on','HorizontalAlignment','left','Interpreter','none');
 
       % unique_labelled_perim = unique(labelled_perim)
       % size_ObjectsInFrame = size(ObjectsInFrame)
@@ -204,10 +204,10 @@ for typ=fields(s)'
 
 
     % Create Gif
-    % if SAVE_TO_DISK
-    %   fig_name = sprintf('/0_gif_distance_visualization type_%s cell_%03d.gif', typ, stack_id);
-    %   save_path = [fig_save_path fig_name];
-    %   colour_imgs_to_gif(m,save_path);
-    % end
+    if SAVE_TO_DISK
+      fig_name = sprintf('/0_gif_distance_visualization type_%s cell_%03d.gif', typ, stack_id);
+      save_path = [fig_save_path fig_name];
+      colour_imgs_to_gif(m,save_path);
+    end
   end
 end

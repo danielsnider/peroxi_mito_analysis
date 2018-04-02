@@ -1,6 +1,6 @@
 log_msg(sprintf('[%s]: %s', mfilename(), 'Removing short tracks...'));
 
-MIN_TRACE_LENGTH = 8;
+MIN_TRACE_LENGTH = 6;
 for trace_id=unique(T.Trace)'
   TraceTable = T(ismember(T.Trace,trace_id),:);
   num_traces = height(TraceTable);

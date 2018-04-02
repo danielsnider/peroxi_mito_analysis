@@ -3,9 +3,8 @@ n = 0;
 aspects = struct();
 n = n + 1;
 aspects(n).title = sprintf('Number of Peroxisomes within 1 px of Mitochondria');
-aspects(n).value = 'Distances';
 aspects(n).ylabel_left = 'Number of Contacts';
-aspects(n).ylabel_right = 'Distance (nm)';
+aspects(n).ylabel_right = 'Distance (px)';
 
 
 for aspect_num=1:length(aspects)
@@ -29,7 +28,7 @@ for aspect_num=1:length(aspects)
 
   % Loop over stack types
   for cell_id=1:size(all_contact_durations,1)
-    Values = all_contact_durations(cell_id,:);
+    Values = all_in_contact_bool{cell_id};
     % if strfind(typ,'zoom') 
     %   scale_factor = 48; % nm per pixel
     % else
@@ -38,8 +37,8 @@ for aspect_num=1:length(aspects)
     % Values = Values .* scale_factor;
     means = [means mean(Values)];
     medians = [medians median(Values)];
-    not_touching_count = sum(Values > CONTACT_DIST_PX);
-    touching_count = length(Values) - not_touching_count;
+    not_touching_count = length(Values);
+    touching_count = sum(Values);
     percent_out_of_contact = [percent_out_of_contact not_touching_count/(not_touching_count + touching_count)*100 ];
     Values = [touching_count not_touching_count];
     bar_data(count,:) = Values;
@@ -110,7 +109,8 @@ for aspect_num=1:length(aspects)
   set(gca,'GridColor',[1 1 1]);
   set(gca,'LineWidth',2);
   hL = legend(legend_names);
-  set(gca,'XTickLabels',type_names);
+  % set(gca,'XTickLabels',type_names);
+  
 
   ylim([0 max(means(:)*2)]);
 
@@ -147,7 +147,7 @@ for aspect_num=1:length(aspects)
   set(xl, 'FontSize', xlFontSize);
  
   % Make smaller tick names;
-  xlabel('Experiment','FontName','Yu Gothic UI');
+  xlabel('Cell','FontName','Yu Gothic UI');
   Fontsize1 = 15;
   xl = get(gca,'XLabel');
   xlFontSize = get(xl,'FontSize');
@@ -160,6 +160,6 @@ for aspect_num=1:length(aspects)
 
   if SAVE_TO_DISK
     fig_name = ['3_bar_plot_within_contact'];
-    export_fig([fig_save_path fig_name '.png'],'-m2');
+    export_fig([fig_save_path fig_name '.png'],SAVE_FIG_MAG);
   end
 end
