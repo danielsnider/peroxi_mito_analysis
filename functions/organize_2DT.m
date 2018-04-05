@@ -28,6 +28,9 @@ for series_id=1:omeMeta.getImageCount
     typ = 'decon';
     continue % Skip this stack is not a keeper
   elseif contains(stack_name,'Good 1024x1024 1000') && contains(stack_name,'_decon')
+    if contains(stack_name,'decon_001')
+      continue
+    end
     typ = 'zoom_decon';
   elseif contains(stack_name,'512x512 700 speed')
     typ = 'raw';

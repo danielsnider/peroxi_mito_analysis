@@ -17,6 +17,8 @@ for aspect_num=1:length(aspects)
   legend_names = {['In Contact (within 1 px )'],'Out of Contact'};
 
   fig = figure;
+  subplot(1,2,1)
+
   % clf('reset')
 
   cmap=cbrewer('seq', 'PuBu', 2);
@@ -47,8 +49,9 @@ for aspect_num=1:length(aspects)
   yyaxis right
   for cell_id=1:length(all_contact_durations)
     % x = zeros(length(all_contact_durations{cell_id}))+cell_id;  % ex. 1,1,1,1,1
-    x=-1/4+cell_id+rand(length(all_contact_durations{cell_id}),1)/2;
-    h = plot(x,all_contact_durations{cell_id},'o', 'Color', [.6 .6 .6],'MarkerSize', 15,'MarkerFaceColor',[.9 .9 .9],'MarkerEdgeColor', [205/255 94/255 39/255],'LineWidth',2);
+    x=-1/4+cell_id+rand(length(all_contact_durations{cell_id}),1)/1.7;
+    y=all_contact_durations{cell_id} + rand(length(all_contact_durations{cell_id}),1)'*.15;
+    h = plot(x,y,'o', 'Color', [.6 .6 .6],'MarkerSize', 15,'MarkerFaceColor',[.9 .9 .9],'MarkerEdgeColor', [205/255 94/255 39/255],'LineWidth',2);
     for hh=h'
       set(get(get(hh,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
     end
@@ -77,11 +80,11 @@ for aspect_num=1:length(aspects)
     % h = text(x, y,txt,'Color',[.1 .1 .1],'FontSize',14,'FontName','Yu Gothic UI Light','HorizontalAlignment','center');
     % Lower bar percentage
     txt = sprintf('%.3g%%', bar_data(n));
-    v_offset = max(ylim)*.04
+    v_offset = max(ylim)*.02
     h = text(x, bar_data(n)+v_offset,txt,'Color',[.1 .1 .1],'FontSize',20,'FontName','Yu Gothic UI','HorizontalAlignment','center');
     % uistack(h, 'top')
     txt = sprintf('contact=%d/%d\ntracks=%d', sum(all_in_contact_bool{n}),length(all_in_contact_bool{n}), length(all_contact_durations{n}));
-    h = text(x, 0-v_offset+.2,txt,'Color',[.1 .1 .1],'FontSize',16,'FontName','Yu Gothic UI Light','HorizontalAlignment','center','Interpreter','none','VerticalAlignment','top');
+    h = text(x, 0,txt,'Color',[.1 .1 .1],'FontSize',20,'FontName','Yu Gothic UI Light','HorizontalAlignment','center','Interpreter','none','VerticalAlignment','top');
     % uistack(h, 'top')
 
     % Median line
@@ -93,7 +96,7 @@ for aspect_num=1:length(aspects)
   end
 
   yyaxis right 
-
+  yticklabels(yticks())
 
 
   % Style
@@ -115,8 +118,8 @@ for aspect_num=1:length(aspects)
   % ylim([0 max(means(:)*2)]);
 
   title(aspect.title,'Interpreter','none','FontName','Yu Gothic UI Light');
-  text(.5,1.08,'within 1 px of Mitochondria at any given time.','FontSize', 17, 'FontName','Yu Gothic UI Light','HorizontalAlignment', 'center', 'Units','normalized', 'Interpreter','none');
-  % text(.5,1.025,'within 1 px of Mitochondria at any given time.','FontSize', 17, 'FontName','Yu Gothic UI Light','HorizontalAlignment', 'center', 'Units','normalized', 'Interpreter','none');
+  % text(.5,1.08,'within 1 px of Mitochondria at any given time.','FontSize', 17, 'FontName','Yu Gothic UI Light','HorizontalAlignment', 'center', 'Units','normalized', 'Interpreter','none');
+  text(.5,1.025,'within 1 px of Mitochondria at any given time.','FontSize', 17, 'FontName','Yu Gothic UI Light','HorizontalAlignment', 'center', 'Units','normalized', 'Interpreter','none');
 
   yyaxis left
   yt=yticks
@@ -154,9 +157,6 @@ for aspect_num=1:length(aspects)
   set(xAX,'FontSize', Fontsize1)
   set(xl, 'FontSize', xlFontSize);
   xticklabels([])
-
-
-
 
   if SAVE_TO_DISK
     fig_name = ['/3_bar_scatter_contact'];

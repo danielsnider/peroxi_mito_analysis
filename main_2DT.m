@@ -56,17 +56,6 @@ series_id_matlab = series_id+1; % matlab starts at 1
 %% Get OME Metadata
 any_series_id = 1;
 omeMeta = data{any_series_id,4};
-% Image count
-series_count = omeMeta.getImageCount;
-for series_id=0:series_count-1
-  % Image Name
-  omeMeta.getImageName(series_id)
-  % Pixel Size
-  omeMeta.getPixelsPhysicalSizeX(series_id).value(ome.units.UNITS.NANOMETER)
-end
-
-
-
 
 %% Image size
 NUM_CHANS = 2;

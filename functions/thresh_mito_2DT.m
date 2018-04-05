@@ -10,12 +10,12 @@ for typ=fields(s)'
     % Loop over timepoints
     for tid=1:size(s_mito,3)
       mito = s_mito(:,:,tid);
-      if sum(mito(:)) < MIN_INTENSITY_MAP(typ)
-        msg = sprintf('Not enough signal (%d) in image of type=%s, one_z=%d. Must be at least %d.', sum(mito(:)), typ, tid, MIN_INTENSITY_MAP(typ))
-        warning(msg);
-        zeros_ = zeros(size(mito));
-        mito = zeros_;
-      end
+%       if sum(mito(:)) < MIN_INTENSITY_MAP(typ)
+%         msg = sprintf('Not enough signal (%d) in image of type=%s, one_z=%d. Must be at least %d.', sum(mito(:)), typ, tid, MIN_INTENSITY_MAP(typ))
+%         warning(msg);
+%         zeros_ = zeros(size(mito));
+%         mito = zeros_;
+%       end
 
       % Smooth
       mito = imgaussfilt(mito,1);
