@@ -1,17 +1,16 @@
 log_msg(sprintf('[%s]: %s', mfilename(), 'Montage pero...'));
 
-%% Make montages of watershed
-% Loop over stack types
+%% Make montages of Mito region
 % Loop over stack types
 for typ=fields(s)'
   typ=typ{:};
   % Loop over stacks of this type
   for sid=1:length(s.(typ))
     s_pero = s.(typ)(sid).pero_mid;
-    ws_stack = s.(typ)(sid).pero_ws;
+    thresh_stack = s.(typ)(sid).pero_thresh;
     timepoints = size(s.(typ)(sid).pero_mid,3);
     m=[];
-    % Loop over images in this stack
+    % Loop over timepoints
     for tid=1:timepoints
       % Display original image
       img = s_pero(:,:,tid);
@@ -24,9 +23,9 @@ for typ=fields(s)'
       imshow(img,[min_max]);
       hold on
       % Display color overlay
-      labelled_img = ws_stack(:,:,tid);
-      labelled_perim = imdilate(bwlabel(bwperim(labelled_img)),strel('disk',0));
-      labelled_rgb = label2rgb(uint32(labelled_perim), 'jet', [1 1 1], 'shuffle');
+      labelled_img = thresh_stack(:,:,tid);
+      labelled_perim = imdilate(bwperim(labelled_img),strel('disk',0));
+      labelled_rgb = label2rgb(uint32(labelled_perim), [1 0 0], [1 1 1], 'shuffle');
       himage = imshow(im2uint8(labelled_rgb),[min_max]);
       himage.AlphaData = labelled_perim*1;
       % Display red dots for seeds
@@ -35,11 +34,10 @@ for typ=fields(s)'
       hold on
       plot(ym,xm,'or','markersize',2,'markerfacecolor','r','markeredgecolor','r')
 
-      
       % Store result
       if SAVE_TO_DISK
         fig_name = sprintf('single pero %s stack %03d time %03d',typ, sid, tid);
-        [imageData, alpha] = export_fig([fig_save_path fig_name '.png'],SAVE_FIG_MAG);
+        [imageData, alpha] = export_fig([fig_save_path fig_name '.png'],'-m2');
         if isempty(m)
             m=uint8(zeros(size(imageData,1),size(imageData,2),3,timepoints));
         end
@@ -64,3 +62,5 @@ for typ=fields(s)'
     end
   end
 end
+
+
