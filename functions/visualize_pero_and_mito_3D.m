@@ -14,7 +14,7 @@ for typ=fields(s)'
   for sid=1:length(s.(typ))
     pero_stack = s.(typ)(sid).pero_mid;
     mito_stack = s.(typ)(sid).mito_mid;
-    pero_ws_stack = s.(typ)(sid).pero_ws;
+    pero_ws_stack = bwlabeln(s.(typ)(sid).pero_ws);
     mito_thresh_stack = s.(typ)(sid).mito_thresh;
     timepoints = size(s.(typ)(sid).pero_mid,3);
     stack_name = s.(typ)(sid).stack_name;
@@ -26,9 +26,7 @@ for typ=fields(s)'
       im_mito = mito_stack(:,:,tid);
       im_pero_ws = pero_ws_stack(:,:,tid);
       im_mito_thresh = mito_thresh_stack(:,:,tid);
-      if exist('T.Timepoint') 
-        ObjectsInFrame = T(T.Timepoint==tid,:);
-      end
+      ObjectsInFrame = T(T.Timepoint==tid,:);
       PeroCentroidsXY = s.(typ)(sid).PeroCentroidsXY{tid};
       MitoLocationsXY = s.(typ)(sid).MitoLocationsXY{tid};
       NearestMitoInd = s.(typ)(sid).NearestMitoInd{tid};
@@ -95,22 +93,29 @@ for typ=fields(s)'
       % Display color overlay (Pero)
       if any_objects
         labelled_img = im_pero_ws;
-        labelled_perim = imdilate(bwperim(labelled_img),strel('disk',dilate_factor));
-        if ismember('Trace', T.Properties.VariableNames)
-          cmap = [0 0 0; 0 0 0; ObjectsInFrame.TraceColor]; % weird working cmap for traces
-          all_trace_ids_short= ObjectsInFrame.TraceShort;
-          labelled_perim=bwlabel(labelled_perim);
-          im_pero_ws2 = im_pero_ws+2; % weird working cmap for traces
-          im_pero_ws2(im_pero_ws2==2)=0; % weird working cmap for traces
-          im_pero_ws2(labelled_perim==0)=0; % weird working cmap for traces
-          im_pero_ws2(1)=1;
-          labelled_rgb = label2rgb(im_pero_ws2, cmap, [1 1 1]); % Coloured by TraceID
-          % labelled_rgb = label2rgb(labelled_perim, cmap, [1 1 1]); % Coloured by TraceID
-        else
-          labelled_rgb = label2rgb(uint32(labelled_perim), [1 1 1], [1 1 1], 'shuffle'); % Coloured white
-        end
+        labelled_perim = imdilate(bwperim(labelled_img),strel('disk',0));
+        % if ismember('Trace', T.Properties.VariableNames)
+        %   cmap = [0 0 0; 0 0 0; ObjectsInFrame.TraceColor]; % weird working cmap for traces
+        %   all_trace_ids_short= ObjectsInFrame.TraceShort;
+        %   labelled_perim=bwlabel(labelled_perim);
+        %   im_pero_ws2 = im_pero_ws+2; % weird working cmap for traces
+        %   im_pero_ws2(im_pero_ws2==2)=0; % weird working cmap for traces
+        %   im_pero_ws2(labelled_perim==0)=0; % weird working cmap for traces
+        %   im_pero_ws2(1)=1;
+        %   labelled_rgb = label2rgb(im_pero_ws2, cmap, [1 1 1]); % Coloured by TraceID
+        %   % labelled_rgb = label2rgb(labelled_perim, cmap, [1 1 1]); % Coloured by TraceID
+        % else
+        %   labelled_rgb = label2rgb(uint32(labelled_perim), [1 1 1], [1 1 1], 'shuffle'); % Coloured white
+        % end
+
+          % Color by ws label
+          % labelled_rgb = label2rgb(uint32(labelled_perim), 'hsv', [1 1 1], 'shuffle'); % Coloured by ws label
+          unique_labels = unique(pero_ws_stack(:));
+          labelled_img(1:length(unique_labels)) = unique_labels;
+          labelled_rgb = label2rgb(labelled_img, 'hsv', [1 1 1],'shuffle'); % Coloured by ws label
         himage = imshow(im2uint8(labelled_rgb),[]);
         himage.AlphaData = logical(labelled_perim)*1;
+        % himage.AlphaData = logical(im_pero_ws2)*1;
 
         % % Display distance lines
         % quiver(PeroCentroidsXY(1, :), PeroCentroidsXY(2, :), MitoLocationsXY(1,NearestMitoInd) - PeroCentroidsXY(1, :), MitoLocationsXY(2, NearestMitoInd) - PeroCentroidsXY(2, :), 0, 'c');
@@ -124,10 +129,16 @@ for typ=fields(s)'
         % %delete(h(text_extent_total_x > x_res));
         % %delete(h(text_extent_total_y > y_res));
 
-        %% Display trace ID
+        % %% Display trace ID
         % for i=1:height(ObjectsInFrame)
         %   h = text(PeroCentroidsXY(1,i)'-13*img_size_factor,PeroCentroidsXY(2,i)'-1,all_trace_ids_short{i},'Color',ObjectsInFrame.TraceColor(i,:),'FontSize',12,'Clipping','on','Interpreter','none');
         % end
+        % Delete text that goes off the screen
+        % text_extent = cat(1,h.Extent);
+        % text_extent_total_x = text_extent(:,1) + text_extent(:,3);
+        % text_extent_total_y = text_extent(:,2) + text_extent(:,4);
+        %delete(h(text_extent_total_x > x_res));
+        %delete(h(text_extent_total_y > y_res));
 
       % NOT ENOUGH SIGNAL IN IMAGE, display warning
       else
@@ -164,7 +175,7 @@ for typ=fields(s)'
       % t_val = 5.203*(tid-1);
       % t_unit = 's';
       % txt = sprintf('+%.3f %s\n%s', t_val, t_unit, frame_txt);
-      h = text(10,30,frame_txt,'Color','white','FontSize',16,'Clipping','on','HorizontalAlignment','left','Interpreter','none');
+      h = text(10,20,frame_txt,'Color','white','FontSize',18,'Clipping','on','HorizontalAlignment','left','Interpreter','none');
 
       % unique_labelled_perim = unique(labelled_perim)
       % size_ObjectsInFrame = size(ObjectsInFrame)

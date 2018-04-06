@@ -1,5 +1,9 @@
 log_msg(sprintf('[%s]: %s', mfilename(), 'Measuring distances...'));
 
+z_step_um = 0.34;
+pixel_step_um = 0.02405; % 1 step 
+num_pixels_in_one_z_step = z_step_um / pixel_step_um;
+
 % Loop over stack types
 for typ=fields(s)'
   typ=typ{:};
@@ -10,55 +14,92 @@ for typ=fields(s)'
     mito_stack = s.(typ)(sid).mito;
     pero_ws_stack = s.(typ)(sid).pero_ws;
     mito_thresh_stack = s.(typ)(sid).mito_thresh;
-    timepoints = size(pero_ws_stack,3);
+    z_depth = size(pero_ws_stack,3);
+    timepoints = size(pero_ws_stack,4);
 
     % Loop over images in this stack 
     for tid=1:timepoints
-      im_pero = pero_stack(:,:,tid);
-      im_mito = mito_stack(:,:,tid);
-      im_pero_ws = pero_ws_stack(:,:,tid);
-      im_mito_thresh = mito_thresh_stack(:,:,tid);
-      
-      %% Get X Y Locations (Mito)
-      [Y X] = find(im_mito_thresh);
-      MitoLocationsXY = [X Y];
+      Distances = cell(z_depth,1);
+      NearestMitoInd = cell(z_depth,1);
+      PeroCentroidsXY = cell(z_depth,1);
+
+      im_pero = pero_stack(:,:,:,tid);
+      im_pero_ws = pero_ws_stack(:,:,:,tid);
+    
       %% Calc X Y Centroids (Pero)
-      pero_stats = regionprops(bwlabel(im_pero_ws),im_pero,'Centroid','Area','MeanIntensity');
-      if length(pero_stats)
-        PeroCentroidsXY = round(cat(1,pero_stats.Centroid));
-        PeroCentroidsXYInd = sub2ind(size(im_pero_ws), PeroCentroidsXY(:,2),PeroCentroidsXY(:,1));
-        %  Make new image with pero centers marked with a 1
-        % im_pero_centroids = zeros(size(im_pero_ws));
-        % im_pero_centroids(PeroCentroidsXYInd)=1;
+      pero_stats = regionprops(bwlabeln(im_pero_ws),im_pero,'WeightedCentroid','Area','MeanIntensity');
+      PeroCentroidsXYZ = cat(1,pero_stats.WeightedCentroid);
+      PeroCentroidsXY_ = PeroCentroidsXYZ(:,1:2)';
+      PeroCentroidsZ = PeroCentroidsXYZ(:,3);
+      PeroCentroidsXYZ_rounded = round(cat(1,pero_stats.WeightedCentroid));
+
+      % Loop over z slices looking for the closest mito for each pero at this z, one of the z's is the closest
+      for zid=1:z_depth
+        %% Get X Y Locations (Mito)
+        im_mito = mito_stack(:,:,zid,tid);
+        im_mito_thresh = mito_thresh_stack(:,:,zid,tid);
+        [Y X] = find(im_mito_thresh);
+        MitoLocationsXY = [X Y];
 
         % Mito Stats
-        mito_stats = regionprops(bwlabel(im_mito_thresh),im_mito,'Centroid','Area','MeanIntensity');
+        mito_stats = regionprops(bwlabel(im_mito_thresh),im_mito,'Area');
         
         %% Calc Distance to Nearest Mito from Pero
-        PeroCentroidsXY = PeroCentroidsXY';
+        % PeroCentroidsXY = PeroCentroidsXY';
         MitoLocationsXY = MitoLocationsXY';
-        NearestMitoInd = nearestneighbour(PeroCentroidsXY, MitoLocationsXY);
-        TranslationX = MitoLocationsXY(1,NearestMitoInd) - PeroCentroidsXY(1, :);
-        TranslationY = MitoLocationsXY(2, NearestMitoInd) - PeroCentroidsXY(2, :);
-        [theta,rho] = cart2pol(TranslationX,TranslationY);
-        Distances = rho;
 
-        if EDGE_TO_EDGE_DISTANCE
-          %% Measure not from center but edge
-          % This could be done with linear algebra
-          pero_boundaries = regionprops(bwlabel(bwperim(im_pero_ws)),'Image');
-          for idx=1:length(pero_boundaries)
-            pero_boundary = pero_boundaries(idx).Image;
-            [Y,X]=find(pero_boundary);
-            % Find 
-            X2=X-size(pero_boundary,2)/2-0.5;
-            Y2=Y-size(pero_boundary,1)/2-0.5;
-            this_segment_theta = theta(idx);
-            [theta_,rho_] = cart2pol(X2,Y2);
-            [min_val, min_idx] = min(abs(theta_-this_segment_theta));
-            Distances(idx) = Distances(idx) - rho_(min_idx);
+        % Repeat MitoLocationsXY once for each z_depth. We want to compare 
+        % MitoLocationsXY = repmat(MitoLocationsXY,1,z_depth);
+
+        % Nearest Neighbour
+        NearestMitoInd_ = nearestneighbour(PeroCentroidsXY_, MitoLocationsXY);
+        TranslationX = MitoLocationsXY(1,NearestMitoInd_) - PeroCentroidsXY_(1, :);
+        TranslationY = MitoLocationsXY(2, NearestMitoInd_) - PeroCentroidsXY_(2, :);
+        
+        % Calculate the z distance in pixels (not z slice count) from the current z index to each pero 
+        PeroCentroidsZ_with_step_factor = abs((PeroCentroidsZ-zid)*num_xy_steps_in_one_z_step);
+        TranslationZ = PeroCentroidsZ_with_step_factor';
+
+        % Convert manhantten distance to euclidian
+        [azimuth,elevation,r] = cart2sph(TranslationX,TranslationY,TranslationZ);
+
+        % Find the shortest distance for each pero to mito from all distances
+        for zii=1:z_depth
+          pero_roughly_at_z_bool = PeroCentroidsXYZ_rounded(:,3)==zii;
+          num_pero_roughly_at_z = sum(pero_roughly_at_z_bool); % roughly at z because it's rounded, and it's rounded because we have to store the data somewhere, so we are storing the pero's distance to nearest mito on the nearest z index: s.(typ)(sid).Distances{zid}
+
+          % r contains the distances for all pero, but we are looping one z at a time so get a subset
+          pero_dist_roughly_at_z = r(pero_roughly_at_z_bool);
+          NearestMitoInd__ = NearestMitoInd_(pero_roughly_at_z_bool);
+          PeroCentroidsX__ = TranslationX(pero_roughly_at_z_bool);
+          PeroCentroidsY__ = TranslationY(pero_roughly_at_z_bool);
+
+          % Loop over each pero and check to see if we found a shorter distance at this z
+          for pid=1:num_pero_roughly_at_z
+            % Get the distance for just one pero
+            one_dist_mito_to_pero = pero_dist_roughly_at_z(pid);
+            NearestMitoInd___ = NearestMitoInd__(pid);
+            PeroCentroidsX___ = PeroCentroidsX__(pid);
+            PeroCentroidsY___ = PeroCentroidsY__(pid);
+
+            is_there_an_existing_distance_measurement = pid < length(Distances{zid});
+            if is_there_an_existing_distance_measurement
+              % Check if the distance between this z and the nearest mito is smaller than was already found
+              if one_dist_mito_to_pero < Distances{zid}(pid)
+                % smaller distance found, save it
+                Distances{zid}(pid) = one_dist_mito_to_pero;
+                NearestMitoInd{zid}(pid) = NearestMitoInd___;
+                PeroCentroidsXY{zid}(pid,1) = PeroCentroidsY___;
+                PeroCentroidsXY{zid}(pid,2) = PeroCentroidsX___;
+              end
+            else
+              % A distance for this pero id is not set so set it
+              Distances{zid}(pid) = one_dist_mito_to_pero; % set it
+              NearestMitoInd{zid}(pid) = NearestMitoInd___;
+              PeroCentroidsXY{zid}(pid,1) = PeroCentroidsY___;
+              PeroCentroidsXY{zid}(pid,2) = PeroCentroidsX___;
+            end
           end
-          Distances(Distances<0)=0;
         end
       end
 
@@ -74,35 +115,35 @@ for typ=fields(s)'
       end
 
       % Store Result
-      s.(typ)(sid).PeroCentroidsXY{tid} = PeroCentroidsXY;
-      s.(typ)(sid).MitoLocationsXY{tid} = MitoLocationsXY;
-      s.(typ)(sid).NearestMitoInd{tid} = NearestMitoInd;
-      s.(typ)(sid).TranslationX{tid} = TranslationX;
-      s.(typ)(sid).TranslationY{tid} = TranslationY;
-      s.(typ)(sid).Distances{tid} = Distances;
+      s.(typ)(sid).PeroCentroidsXY = PeroCentroidsXY;
+      % s.(typ)(sid).MitoLocationsXY{zid} = MitoLocationsXY;
+      s.(typ)(sid).NearestMitoInd = NearestMitoInd;
+      % s.(typ)(sid).TranslationX{zid} = TranslationX;
+      % s.(typ)(sid).TranslationY{zid} = TranslationY;
+      s.(typ)(sid).Distances = Distances;
 
       % More Measurements (Should be another file?)
-      s.(typ)(sid).NumPero{tid} = length(PeroCentroidsXY);
-      s.(typ)(sid).PeroArea{tid} = cat(1,pero_stats.Area);
-      s.(typ)(sid).PeroMeanIntensity{tid} = cat(1,pero_stats.MeanIntensity);
-      s.(typ)(sid).PeroTotalIntensity{tid} = s.(typ)(sid).PeroArea{tid} .* s.(typ)(sid).PeroMeanIntensity{tid};
-      s.(typ)(sid).MitoArea{tid} = cat(1,mito_stats.Area);
-      s.(typ)(sid).MitoAreaDivNumPero{tid} =  sum(s.(typ)(sid).MitoArea{tid}) / s.(typ)(sid).NumPero{tid};
-      s.(typ)(sid).PeroAreaDivMitoArea{tid} = sum(s.(typ)(sid).PeroArea{tid}) ./ sum(s.(typ)(sid).MitoArea{tid});
+      % s.(typ)(sid).NumPero{tid} = length(PeroCentroidsXY);
+      s.(typ)(sid).NumPero{zid} = 666666666; % TODO: see above but check it works for 3d???
+      s.(typ)(sid).PeroArea{zid} = cat(1,pero_stats.Area);
+      s.(typ)(sid).PeroMeanIntensity{zid} = cat(1,pero_stats.MeanIntensity);
+      s.(typ)(sid).PeroTotalIntensity{zid} = s.(typ)(sid).PeroArea{zid} .* s.(typ)(sid).PeroMeanIntensity{zid};
+      s.(typ)(sid).MitoArea{zid} = cat(1,mito_stats.Area); % TODO: IS THIS CORRECT??? Is it not changed in the loop, or?
+      s.(typ)(sid).MitoAreaDivNumPero{zid} =  sum(s.(typ)(sid).MitoArea{zid}) / s.(typ)(sid).NumPero{zid};
+      s.(typ)(sid).PeroAreaDivMitoArea{zid} = sum(s.(typ)(sid).PeroArea{zid}) ./ sum(s.(typ)(sid).MitoArea{zid});
 
-      % Debug
-  %     figure
-  %     scatter(MitoLocationsXY(1,:), MitoLocationsXY(2,:), 'b')
-  %     hold on
-  %     scatter(PeroCentroidsXY(1,:), PeroCentroidsXY(2,:), 'r')
-  %     quiver(PeroCentroidsXY(1, :), PeroCentroidsXY(2, :), MitoLocationsXY(1,NearestMitoInd) - PeroCentroidsXY(1, :), MitoLocationsXY(2, NearestMitoInd) - PeroCentroidsXY(2, :), 0, 'k');
-  %     hold off
-  %     set(gca,'XAxisLocation','top','YAxisLocation','left','ydir','reverse');
+      %% Debug
+      % figure
+      % scatter(MitoLocationsXY(1,:), MitoLocationsXY(2,:), 'b')
+      % hold on
+      % scatter(PeroCentroidsXY(1,:), PeroCentroidsXY(2,:), 'r')
+      % quiver(PeroCentroidsXY(1, :), PeroCentroidsXY(2, :), MitoLocationsXY(1,NearestMitoInd) - PeroCentroidsXY(1, :), MitoLocationsXY(2, NearestMitoInd) - PeroCentroidsXY(2, :), 0, 'k');
+      % hold off
+      % set(gca,'XAxisLocation','top','YAxisLocation','left','ydir','reverse');
 
-
-    end
-    if ONE_ONLY
-      return
+      if ONE_ONLY
+        return
+      end
     end
   end
 end

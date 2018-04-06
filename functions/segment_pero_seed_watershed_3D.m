@@ -10,7 +10,7 @@ for typ=fields(s)'
     s_pero_thresh = s.(typ)(sid).pero_thresh;
 
     %% Seed
-    img_smooth = imgaussfilt3(s_pero,[2 2 0.1]);
+    img_smooth = imgaussfilt3(s_pero,[2 2 2],'FilterSize',[19 19 3]);
     seeds = imregionalmax(img_smooth);
     seeds(s_pero_thresh==0)=0;
 
