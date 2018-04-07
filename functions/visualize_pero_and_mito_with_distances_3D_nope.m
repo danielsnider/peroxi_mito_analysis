@@ -26,7 +26,7 @@ for typ=fields(s)'
       im_mito = mito_stack(:,:,tid);
       im_pero_ws = pero_ws_stack(:,:,tid);
       im_mito_thresh = mito_thresh_stack(:,:,tid);
-      ObjectsInFrame = T(T.Timepoint==tid,:);
+%      ObjectsInFrame = T(T.Timepoint==tid,:);
       PeroCentroidsXY = s.(typ)(sid).PeroCentroidsXY{tid};
       MitoLocationsXY = s.(typ)(sid).MitoLocationsXY{tid};
       NearestMitoInd = s.(typ)(sid).NearestMitoInd{tid};

@@ -14,7 +14,7 @@ for typ=fields(s)'
       iterT.PeroTotalIntensity = cat(1,s.(typ)(sid).PeroTotalIntensity{tid});
       iterT.PeroArea = cat(1,s.(typ)(sid).PeroArea{tid});
       iterT.PeroCentroid = cat(1,s.(typ)(sid).PeroCentroidsXY{tid})';
-
+      
       num_objects = height(iterT);
       iterT.CellConvexAreaPX = zeros(num_objects,1)+s.(typ)(sid).ConvexAreaPX(tid);
       % iterT.CellConvexAreaSqrUM = zeros(num_objects,1)+s.(typ)(sid).ConvexAreaSqrUM(tid);

@@ -29,7 +29,7 @@ for typ=fields(s)'
       %% Calc X Y Centroids (Pero)
       pero_stats = regionprops(bwlabeln(im_pero_ws),im_pero,'WeightedCentroid','Area','MeanIntensity');
       PeroCentroidsXYZ = cat(1,pero_stats.WeightedCentroid);
-      PeroCentroidsXY_ = PeroCentroidsXYZ(:,1:2)';
+      PeroCentroidsXY_ = PeroCentroidsXYZ(:,1:2)'; % get just X and Y
       PeroCentroidsZ = PeroCentroidsXYZ(:,3);
       PeroCentroidsXYZ_rounded = round(cat(1,pero_stats.WeightedCentroid));
 
@@ -66,13 +66,13 @@ for typ=fields(s)'
         % Find the shortest distance for each pero to mito from all distances
         for zii=1:z_depth
           pero_roughly_at_z_bool = PeroCentroidsXYZ_rounded(:,3)==zii;
-          num_pero_roughly_at_z = sum(pero_roughly_at_z_bool); % roughly at z because it's rounded, and it's rounded because we have to store the data somewhere, so we are storing the pero's distance to nearest mito on the nearest z index: s.(typ)(sid).Distances{zid}
+          num_pero_roughly_at_z = sum(pero_roughly_at_z_bool); % roughly at z because it's rounded, and it's rounded because we have to store the data somewhere, so we are storing the pero's distance to nearest mito on the nearest z index: s.(typ)(sid).Distances{zii}
 
           % r contains the distances for all pero, but we are looping one z at a time so get a subset
           pero_dist_roughly_at_z = r(pero_roughly_at_z_bool);
           NearestMitoInd__ = NearestMitoInd_(pero_roughly_at_z_bool);
-          PeroCentroidsX__ = TranslationX(pero_roughly_at_z_bool);
-          PeroCentroidsY__ = TranslationY(pero_roughly_at_z_bool);
+          PeroCentroidsX__ = PeroCentroidsXY_(1, pero_roughly_at_z_bool);
+          PeroCentroidsY__ = PeroCentroidsXY_(2, pero_roughly_at_z_bool);
 
           % Loop over each pero and check to see if we found a shorter distance at this z
           for pid=1:num_pero_roughly_at_z
@@ -82,55 +82,60 @@ for typ=fields(s)'
             PeroCentroidsX___ = PeroCentroidsX__(pid);
             PeroCentroidsY___ = PeroCentroidsY__(pid);
 
-            is_there_an_existing_distance_measurement = pid < length(Distances{zid});
+            is_there_an_existing_distance_measurement = pid < length(Distances{zii});
             if is_there_an_existing_distance_measurement
               % Check if the distance between this z and the nearest mito is smaller than was already found
-              if one_dist_mito_to_pero < Distances{zid}(pid)
+              if one_dist_mito_to_pero < Distances{zii}(pid)
                 % smaller distance found, save it
-                Distances{zid}(pid) = one_dist_mito_to_pero;
-                NearestMitoInd{zid}(pid) = NearestMitoInd___;
-                PeroCentroidsXY{zid}(pid,1) = PeroCentroidsY___;
-                PeroCentroidsXY{zid}(pid,2) = PeroCentroidsX___;
+                Distances{zii}(pid) = one_dist_mito_to_pero;
+                NearestMitoInd{zii}(pid) = NearestMitoInd___;
+                PeroCentroidsXY{zii}(pid,1) = PeroCentroidsY___;
+                PeroCentroidsXY{zii}(pid,2) = PeroCentroidsX___;
+                NearestMitoXY{zii}(pid,1) = MitoLocationsXY(1, NearestMitoInd___);
+                NearestMitoXY{zii}(pid,2) = MitoLocationsXY(2, NearestMitoInd___);
               end
             else
               % A distance for this pero id is not set so set it
-              Distances{zid}(pid) = one_dist_mito_to_pero; % set it
-              NearestMitoInd{zid}(pid) = NearestMitoInd___;
-              PeroCentroidsXY{zid}(pid,1) = PeroCentroidsY___;
-              PeroCentroidsXY{zid}(pid,2) = PeroCentroidsX___;
+              Distances{zii}(pid) = one_dist_mito_to_pero; % set it
+              NearestMitoInd{zii}(pid) = NearestMitoInd___;
+              PeroCentroidsXY{zii}(pid,1) = PeroCentroidsY___;
+              PeroCentroidsXY{zii}(pid,2) = PeroCentroidsX___;
+              NearestMitoXY{zii}(pid,1) = MitoLocationsXY(1, NearestMitoInd___);
+              NearestMitoXY{zii}(pid,2) = MitoLocationsXY(2, NearestMitoInd___);
             end
           end
         end
+
+        % Handle no objects found
+        if length(pero_stats)==0
+          mito_stats = pero_stats;
+          PeroCentroidsXY = [];
+          MitoLocationsXY = [];
+          NearestMitoInd = [];
+          TranslationX = [];
+          TranslationY = [];
+          Distances = [];
+        end
+
+        % Store Result
+        s.(typ)(sid).PeroCentroidsXY = PeroCentroidsXY;
+        s.(typ)(sid).MitoLocationsXY{zid} = MitoLocationsXY;
+        s.(typ)(sid).NearestMitoInd = NearestMitoInd;
+        s.(typ)(sid).NearestMitoXY = NearestMitoXY;
+        % s.(typ)(sid).TranslationX{zid} = TranslationX;
+        % s.(typ)(sid).TranslationY{zid} = TranslationY;
+        s.(typ)(sid).Distances = Distances;
+
+        % More Measurements (Should be another file?)
+        % s.(typ)(sid).NumPero{tid} = length(PeroCentroidsXY);
+        s.(typ)(sid).NumPero{zid} = 666666666; % TODO: see above but check it works for 3d???
+        s.(typ)(sid).PeroArea{zid} = cat(1,pero_stats.Area);
+        s.(typ)(sid).PeroMeanIntensity{zid} = cat(1,pero_stats.MeanIntensity);
+        s.(typ)(sid).PeroTotalIntensity{zid} = s.(typ)(sid).PeroArea{zid} .* s.(typ)(sid).PeroMeanIntensity{zid};
+        s.(typ)(sid).MitoArea{zid} = cat(1,mito_stats.Area); % TODO: IS THIS CORRECT??? Is it not changed in the loop, or?
+        s.(typ)(sid).MitoAreaDivNumPero{zid} =  sum(s.(typ)(sid).MitoArea{zid}) / s.(typ)(sid).NumPero{zid};
+        s.(typ)(sid).PeroAreaDivMitoArea{zid} = sum(s.(typ)(sid).PeroArea{zid}) ./ sum(s.(typ)(sid).MitoArea{zid});
       end
-
-      % Handle no objects found
-      if length(pero_stats)==0
-        mito_stats = pero_stats;
-        PeroCentroidsXY = [];
-        MitoLocationsXY = [];
-        NearestMitoInd = [];
-        TranslationX = [];
-        TranslationY = [];
-        Distances = [];
-      end
-
-      % Store Result
-      s.(typ)(sid).PeroCentroidsXY = PeroCentroidsXY;
-      % s.(typ)(sid).MitoLocationsXY{zid} = MitoLocationsXY;
-      s.(typ)(sid).NearestMitoInd = NearestMitoInd;
-      % s.(typ)(sid).TranslationX{zid} = TranslationX;
-      % s.(typ)(sid).TranslationY{zid} = TranslationY;
-      s.(typ)(sid).Distances = Distances;
-
-      % More Measurements (Should be another file?)
-      % s.(typ)(sid).NumPero{tid} = length(PeroCentroidsXY);
-      s.(typ)(sid).NumPero{zid} = 666666666; % TODO: see above but check it works for 3d???
-      s.(typ)(sid).PeroArea{zid} = cat(1,pero_stats.Area);
-      s.(typ)(sid).PeroMeanIntensity{zid} = cat(1,pero_stats.MeanIntensity);
-      s.(typ)(sid).PeroTotalIntensity{zid} = s.(typ)(sid).PeroArea{zid} .* s.(typ)(sid).PeroMeanIntensity{zid};
-      s.(typ)(sid).MitoArea{zid} = cat(1,mito_stats.Area); % TODO: IS THIS CORRECT??? Is it not changed in the loop, or?
-      s.(typ)(sid).MitoAreaDivNumPero{zid} =  sum(s.(typ)(sid).MitoArea{zid}) / s.(typ)(sid).NumPero{zid};
-      s.(typ)(sid).PeroAreaDivMitoArea{zid} = sum(s.(typ)(sid).PeroArea{zid}) ./ sum(s.(typ)(sid).MitoArea{zid});
 
       %% Debug
       % figure

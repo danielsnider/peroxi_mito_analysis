@@ -26,10 +26,11 @@ for typ=fields(s)'
       im_mito = mito_stack(:,:,tid);
       im_pero_ws = pero_ws_stack(:,:,tid);
       im_mito_thresh = mito_thresh_stack(:,:,tid);
-      ObjectsInFrame = T(T.Timepoint==tid,:);
+      %ObjectsInFrame = T(T.Timepoint==tid,:);
       PeroCentroidsXY = s.(typ)(sid).PeroCentroidsXY{tid};
       MitoLocationsXY = s.(typ)(sid).MitoLocationsXY{tid};
       NearestMitoInd = s.(typ)(sid).NearestMitoInd{tid};
+      NearestMitoXY = s.(typ)(sid).NearestMitoXY{tid};
       Distances = s.(typ)(sid).Distances{tid};
       any_objects = ~isempty(PeroCentroidsXY);
       ConvexAreaPX = s.(typ)(sid).ConvexAreaPX(tid);
@@ -118,13 +119,14 @@ for typ=fields(s)'
         % himage.AlphaData = logical(im_pero_ws2)*1;
 
         % % Display distance lines
-        quiver(PeroCentroidsXY(1, :), PeroCentroidsXY(2, :), MitoLocationsXY(1,NearestMitoInd) - PeroCentroidsXY(1, :), MitoLocationsXY(2, NearestMitoInd) - PeroCentroidsXY(2, :), 0, 'c');
+        % quiver(PeroCentroidsXY(:, 1)', PeroCentroidsXY(:, 2)', MitoLocationsXY(1,NearestMitoInd) - PeroCentroidsXY(:, 1)', MitoLocationsXY(2, NearestMitoInd) - PeroCentroidsXY(:, 2)', 0, 'c');
+        quiver(PeroCentroidsXY(:, 2), PeroCentroidsXY(:, 1), NearestMitoXY(:, 1) - PeroCentroidsXY(:, 2), NearestMitoXY(:, 2) - PeroCentroidsXY(:, 1), 0, 'c');
 
         % %% Display amount of distances as text
-        h = text(PeroCentroidsXY(1,:)'+3*img_size_factor,PeroCentroidsXY(2,:)'-1,cellstr(num2str(round(Distances'))),'Color','cyan','FontSize',12,'Clipping','on','Interpreter','none');
+        h = text(PeroCentroidsXY(:,1)'+3*img_size_factor,PeroCentroidsXY(:,2)'-1,cellstr(num2str(round(Distances'))),'Color','cyan','FontSize',12,'Clipping','on','Interpreter','none');
 
         % %% Display trace ID
-        % h = text(PeroCentroidsXY(1,:)'-13*img_size_factor,PeroCentroidsXY(2,:)'-1,all_trace_ids_short{:},'Color','White','FontSize',12,'Clipping','on','Interpreter','none');
+        % h = text(PeroCentroidsXY(:,1)'-13*img_size_factor,PeroCentroidsXY(:,2)'-1,all_trace_ids_short{:},'Color','White','FontSize',12,'Clipping','on','Interpreter','none');
         % for i=1:height(ObjectsInFrame)  % colored by cmap
           % h = text(PeroCentroidsXY(1,i)'-13*img_size_factor,PeroCentroidsXY(2,i)'-1,all_trace_ids_short{i},'Color',ObjectsInFrame.TraceColor(i,:),'FontSize',12,'Clipping','on','Interpreter','none'); % colored by cmap
         % end
