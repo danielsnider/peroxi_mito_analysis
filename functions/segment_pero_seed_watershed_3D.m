@@ -1,4 +1,4 @@
-log_msg(sprintf('[%s]: %s', mfilename(), 'Segmenting pero...'));
+log_msg(sprintf('[%s]: %s', mfilename(), 'Segmenting pero 3D...'));
 
 %% Segment peroxi
 % Loop over stack types

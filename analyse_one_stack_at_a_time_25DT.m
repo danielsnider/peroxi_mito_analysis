@@ -5,7 +5,6 @@ close all
 set(0,'DefaultFigureWindowStyle','docked');
 addpath(genpath('functions'));
 
-EDGE_TO_EDGE_DISTANCE = true;
 SAVE_NAME_PREFIX = 'from_edge';
 date_str = datestr(now,'yyyymmddTHHMMSS');
 save_dir = 'saved_figs';
@@ -52,7 +51,7 @@ USE_SLICE='3 and 4' % for text in figure only
 ONE_ONLY = false;
 TEST_ONE_FIG = false;
 SAVE_TO_DISK = true;
-SAVE_FIG_MAG = '-m2';
+SAVE_FIG_MAG = '-m1';
 
 CONTACT_DIST_NM = 150;
 
@@ -67,9 +66,10 @@ ONE_ONLY = false;
 TEST_ONE_FIG = false;
 SAVE_TO_DISK = true;
 SAVE_FIG_MAG = '-m2';
+EDGE_TO_EDGE_DISTANCE = true; % edge or center
 
 thresh_mito_prctile = 93;
-thresh_pero_prctile = 99.6;
+thresh_pero_prctile = 99.5;
 min_area = 25;
 max_area = 5000;
 
@@ -86,7 +86,7 @@ count = 0;
 for typ={'zoom_decon'}
   typ=typ{:};
   % Loop over stacks of this type
-  for sid=2:length(s_all.(typ))
+  for sid=1:length(s_all.(typ))
     count=count+1;
     s = [];
     s.(typ) = s_all.(typ)(sid);
@@ -127,7 +127,7 @@ for typ={'zoom_decon'}
     [T,DiffTable] = cell_tracking_v1_simple(T, composite_differences);
 
     %% Remove Short Tracks
-    remove_short_tracks
+    %remove_short_tracks
 
     % Visualize (v4 - Tracking 1st)
     visualize_pero_and_mito_with_distances_2DT
@@ -141,8 +141,9 @@ for typ={'zoom_decon'}
     %bar_contact_duration
     frame_to_frame_changes_distance_vs_time
 
-     % pause
-     % pause
+      %pause
+      %pause
+     
     close all
     s_all2.(typ)(sid) = s.(typ);
   end
@@ -155,6 +156,7 @@ save('ResultsTable.mat','all_vars_25D.mat')
 save('all_contact_durations.mat','all_contact_durations')
 save('all_in_contact_bool.mat','all_in_contact_bool')
 save('s_all.mat','s_all')
+EDGE_TO_EDGE_DISTANCE
 
 done = true;
 

@@ -112,9 +112,9 @@ for typ={'zoom_decon'}
     % montage_pero_red_outline_on_grey_2DT
     convex_area_2DT
     
-    close all
+    %close all
     segment_pero_seed_watershed_3D
-    visualize_pero_and_mito
+    %visualize_pero_and_mito
     % visualize_pero_and_mito_3D
     % view3d_stacks
 
@@ -123,27 +123,6 @@ for typ={'zoom_decon'}
 
     % Create Table
     create_table_pero_2DT
-
-    %% CALC DIFFERENCES BETWEEN FRAMES
-    % [raw_differences, normalized_differences, composite_differences] = DifferentialMeasurements(T);
-
-    %% TRACK CELLS
-    % [T,DiffTable] = cell_tracking_v1_simple(T, composite_differences);
-
-    %% Remove Short Tracks
-    %remove_short_tracks
-    % Relabel the peroxisomes
-    
-for tid=1:size(s.(typ).pero_ws,3)
-  s.(typ).pero_ws(:,:,tid) = bwlabel(s.(typ).pero_ws(:,:,tid));
-end
-
-%% Recalculate stats
-measure_dist_pero_to_mito_2DT
-create_table_pero_2DT
-[raw_differences, normalized_differences, composite_differences] = DifferentialMeasurements(T);
-[T,DiffTable] = cell_tracking_v1_simple(T, composite_differences);
-
 
     % Visualize (v4 - Tracking 1st)
     visualize_pero_and_mito_with_distances_3D
@@ -157,8 +136,8 @@ create_table_pero_2DT
     %bar_contact_duration
     frame_to_frame_changes_distance_vs_time
 
-     % pause
-     % pause
+     pause
+     pause
     close all
     s_all2.(typ)(sid) = s.(typ);
   end
