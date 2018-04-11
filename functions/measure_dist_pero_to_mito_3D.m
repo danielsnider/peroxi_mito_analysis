@@ -39,7 +39,7 @@ for typ=fields(s)'
         im_mito = mito_stack(:,:,zid,tid);
         im_mito_thresh = mito_thresh_stack(:,:,zid,tid);
         [Y X] = find(im_mito_thresh);
-        MitoLocationsXY = [X Y];
+        MitoLocationsXY = [Y X];
 
         % Mito Stats
         mito_stats = regionprops(bwlabel(im_mito_thresh),im_mito,'Area');

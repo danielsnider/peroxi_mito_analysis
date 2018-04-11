@@ -119,11 +119,10 @@ for typ=fields(s)'
         % himage.AlphaData = logical(im_pero_ws2)*1;
 
         % % Display distance lines
-        % quiver(PeroCentroidsXY(:, 1)', PeroCentroidsXY(:, 2)', MitoLocationsXY(1,NearestMitoInd) - PeroCentroidsXY(:, 1)', MitoLocationsXY(2, NearestMitoInd) - PeroCentroidsXY(:, 2)', 0, 'c');
         quiver(PeroCentroidsXY(:, 2), PeroCentroidsXY(:, 1), NearestMitoXY(:, 1) - PeroCentroidsXY(:, 2), NearestMitoXY(:, 2) - PeroCentroidsXY(:, 1), 0, 'c');
 
         % %% Display amount of distances as text
-        h = text(PeroCentroidsXY(:,1)'+3*img_size_factor,PeroCentroidsXY(:,2)'-1,cellstr(num2str(round(Distances'))),'Color','cyan','FontSize',12,'Clipping','on','Interpreter','none');
+        h = text(PeroCentroidsXY(:,2)'+3*img_size_factor,PeroCentroidsXY(:,1)'-1,cellstr(num2str(round(Distances'))),'Color','cyan','FontSize',12,'Clipping','on','Interpreter','none');
 
         % %% Display trace ID
         % h = text(PeroCentroidsXY(:,1)'-13*img_size_factor,PeroCentroidsXY(:,2)'-1,all_trace_ids_short{:},'Color','White','FontSize',12,'Clipping','on','Interpreter','none');
