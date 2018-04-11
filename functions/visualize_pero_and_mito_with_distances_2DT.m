@@ -180,7 +180,7 @@ for typ=fields(s)'
       if SAVE_TO_DISK
         % Store result
         fig_name = sprintf('/distance_visualization type_%s cell_%03d timepoint_%03d',typ, stack_id, tid);
-        [imageData, alpha] = export_fig([fig_save_path fig_name '.png'],SAVE_FIG_MAG);
+        [imageData, alpha] = export_fig([fig_save_path fig_name '.png'],SAVE_FIG_MAG,'-nocrop');
         if isempty(m)
             m=uint8(zeros(size(imageData,1),size(imageData,2),3,timepoints));
         end
