@@ -14,39 +14,6 @@ all_mito_vertices = [];
 mitoXYZ = [];
 num_pero = max(pero_ws_stack(:));
 
-% labelled_mito = bwlabeln(mito_thresh_stack);
-%% Render each mito one segment at a time 
-% for mid=32:35  % mid=32 is a mito with hole in it,. dounut shape
-% for mid=2  % mid=32 is a mito with hole in it,. dounut shape
-% for mid=1:max(labelled_mito(:))
-%   mito = labelled_mito==mid;
-
-%   % Render each 2D z-slice of the mito one at a time. This is needed because the 3D render isn't perfect and doesn't display thin 2D slices at all.
-%   for z=1:5
-%     [Y X] = find(mito(:,:,z));
-%     Z = zeros(length(X),1)+z;
-%     if isempty(Z)
-%       continue
-%     end
-%     mitoXYZ= [mitoXYZ; X Y Z];
-
-%     % % Draw 2D slice
-%     % shp2d = alphaShape(X,Y); % the default behaviour of a 2d render with alphaShape is to draw green slices at z=0, the next line disables this
-%     % h2d = plot(shp2d); % hide the green 2d slices
-%     % h2d.Visible='off';
-%     % faces = h2d.Faces;
-%     % vertices = [h2d.Vertices Z.*13]; % we created a two 2D but want to put it in 3D
-%     % p = patch('Faces',faces,'Vertices',vertices);
-%     % p.FaceColor = 'red';
-%     % p.EdgeColor = 'none';
-
-%     % % BUG: Unfortunately point2trimesh has a problem measuring distance to the 2D slices so this is disabled (lets just eliminate single slice peros)
-%     % all_mito2d_faces = [all_mito_faces; faces];
-%     % all_mito2d_vertices = [all_mito_vertices; vertices];
-%   end
-% end
-
-
 all_mito_faces = {};
 all_mito_vertices = {};
 for zid=1:5
@@ -67,11 +34,9 @@ for zid=1:5
   p.FaceColor = 'red';
   p.EdgeColor = 'none';
 
-  % BUG: Unfortunately point2trimesh has a problem measuring distance to the 2D slices so this is disabled (lets just eliminate single slice peros)
   all_mito_faces{zid} = faces;
   all_mito_vertices{zid} = vertices;
 end
-
 
 % Render 3D mito
 shp = alphaShape(mitoXYZ,4);
@@ -86,52 +51,13 @@ all_mito_vertices{zid+1} = h.Vertices;
 pero_stats = regionprops3(pero_ws_stack,'Centroid','EquivDiameter');
 pero_stats.Centroid(:,3) = pero_stats.Centroid(:,3) .* 13;  % z depth scale factor 13um
 %% Render each pero one at a time 
-% for pid=54:60
 for pid=1:max(pero_ws_stack(:))
-  pero = pero_ws_stack==pid;
-  peroXYZ = [];
-  RENDER_PERO = false;
-
-  if ~RENDER_PERO
-    % Draw scatter points instead of rendering with surfaces
-    pero_cent_x = pero_stats.Centroid(pid,1);
-    pero_cent_y = pero_stats.Centroid(pid,2);
-    pero_cent_z = pero_stats.Centroid(pid,3);
-    pero_diameter = pero_stats.EquivDiameter(pid);
-    scatter3(pero_cent_x, pero_cent_y, pero_cent_z, pero_diameter,'green','filled')
-  end
-
-
-  if RENDER_PERO
-    % Render each 2D z-slice of the pero one at a time. This is needed because the 3D render isn't perfect and doesn't display thin 2D slices at all.
-    for z=1:5
-      [Y X] = find(pero(:,:,z));
-      Z = zeros(length(X),1)+z;
-      if isempty(Z)
-        continue
-      end
-      peroXYZ= [peroXYZ; X Y Z];
-      shp2d = alphaShape(X,Y); % the default behaviour of a 2d render with alphaShape is to draw green slices at z=0, the next line disables this
-      h2d = plot(shp2d); % hide the green 2d slices
-      h2d.Visible='off';
-      if isempty(h2d.Faces)
-          continue
-      end
-      vertices = [h2d.Vertices Z];
-      p = patch('Faces',h2d.Faces,'Vertices',vertices);
-      p.FaceColor = 'green';
-      p.EdgeColor = 'none';
-    end
-    if isempty(peroXYZ)
-      continue
-    end
-
-    % Render 3D pero
-    shp = alphaShape(peroXYZ,4);
-    h = plot(shp);
-    h.FaceColor = 'green';
-    h.EdgeColor = 'none';
-  end
+  % Draw scatter points instead of rendering with surfaces
+  pero_cent_x = pero_stats.Centroid(pid,1);
+  pero_cent_y = pero_stats.Centroid(pid,2);
+  pero_cent_z = pero_stats.Centroid(pid,3);
+  pero_diameter = pero_stats.EquivDiameter(pid);
+  scatter3(pero_cent_x, pero_cent_y, pero_cent_z, pero_diameter*10,'green','filled')
 end
 
 % Measure distances between pero and mito
@@ -174,15 +100,13 @@ for pid=1:num_pero
   surface_points(pid,:) = all_surface_points(pid,:,min_dist_type_id(pid));
 end
 
-
+% Plot distance lines
 plot3M(reshape([shiftdim(points,-1);shiftdim(surface_points,-1);shiftdim(points,-1)*NaN],[],3),'k')
 
 % Style
-% daspect([1 1 1/13])
 axis tight
 view(3)
 rotate3d on
-%axis off
 axis vis3d % disable strech-to-fill
 set(gca, 'color','none')
 set(gcf, 'color',[1 1 1])
@@ -192,32 +116,6 @@ h.AmbientStrength = 0.3;
 h.DiffuseStrength = 0.8;
 h.SpecularStrength = 0.9;
 h.SpecularExponent = 25;
-
-
-% axis equal
-% zlim([0 7*13]) %% For closer inspecting of one mito 
-% xlim([0 1024])
-% ylim([0 1024])
-
-
-%% Simple Animate
-% % Rotate the render about the x axis and the y axis with an ease in and out defined by cos()
-% frames = 300;
-% fps = 1/60
-% speedupdown = -cos(linspace(0,pi,frames));
-% for i = 1:frames
-%    camorbit(1,speedupdown(i)/2);
-%    pause(fps);
-% end
-% % Rotate the render about the x axis
-% for i = 1:frames
-%    camorbit(1,0);
-%    pause(fps);
-% end
-
-% Rotate the render about the x axis and the y axis with an ease in and out defined by cos()
-
-
 
 %% Animate and save to disk
 m = [];
@@ -234,7 +132,7 @@ for fid = 1:frames
     fig_name = sprintf('/distance_visualization type_%s cell_%03d timepoint_%03d frame_%03d',typ, stack_id, tid, fid);
     [imageData, alpha] = export_fig([fig_save_path fig_name '.png'],SAVE_FIG_MAG, '-nocrop');
     if isempty(m)
-        m=uint8(zeros(size(imageData,1),size(imageData,2),3,frames*2));
+        m=uint8(zeros(size(imageData,1),size(imageData,2),3,timepoints*2));
         size_m = size(m)
     end
 
@@ -247,13 +145,9 @@ for fid = 1:frames
 
     % Save result
     m(:,:,:,fid) = imageData;
-    fid
-    % figure
-    % imshow3Dfull(permute(m,[1 2 4 3]))
   else
     pause(fps)
   end
-  % close all
 end
 
 % Rotate the render about the x axis
@@ -277,13 +171,9 @@ for fid = 1:frames
 
     % Save result
     m(:,:,:,frames+fid) = imageData;
-    fid+frames
-    % figure
-    % imshow3Dfull(permute(m,[1 2 4 3]))
   else
     pause(fps)
   end
-  % close all
 end
 
 

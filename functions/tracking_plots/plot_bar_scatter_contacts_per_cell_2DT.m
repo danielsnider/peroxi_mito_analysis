@@ -83,8 +83,17 @@ for aspect_num=1:length(aspects)
     v_offset = max(ylim)*.02
     h = text(x, bar_data(n)+v_offset,txt,'Color',[.1 .1 .1],'FontSize',20,'FontName','Yu Gothic UI','HorizontalAlignment','center');
     % uistack(h, 'top')
-    txt = sprintf('contact=%d/%d\ntracks=%d', sum(all_in_contact_bool{n}),length(all_in_contact_bool{n}), length(all_contact_durations{n}));
-    h = text(x, 0,txt,'Color',[.1 .1 .1],'FontSize',20,'FontName','Yu Gothic UI Light','HorizontalAlignment','center','Interpreter','none','VerticalAlignment','top');
+    CellTable = ResultsTable(ResultsTable.CellNum==n,:);
+    total_pero = height(CellTable);
+    unique_pero = length(unique(CellTable.Trace));
+    total_contacts = sum(all_in_contact_bool{n});
+    unique_contacts = length(all_contact_durations{n});
+    txt = sprintf(['unique pero = %d\n' ...
+                  'total pero = %d\n' ...
+                  'unique contacts = %d\n' ...
+                  'total contacts = %d\n'], ...
+                  unique_pero, total_pero, unique_contacts, total_contacts);
+    h = text(x, 0,txt,'Color',[.1 .1 .1],'FontSize',12,'FontName','Yu Gothic UI Light','HorizontalAlignment','center','Interpreter','none','VerticalAlignment','top');
     % uistack(h, 'top')
 
     % Median line
