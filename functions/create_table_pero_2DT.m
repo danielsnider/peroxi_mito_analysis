@@ -27,6 +27,11 @@ for typ=fields(s)'
       ImagingType(:) = {typ};
       iterT.ImagingType = ImagingType;
       
+      % ImageProcessingType
+      ImageProcessingType=cell(num_objects,1);
+      ImageProcessingType(:) = {IMAGE_PROCESSING_TYPE};
+      iterT.ImageProcessingType = ImageProcessingType;
+
       T = [T; iterT];
     end
 

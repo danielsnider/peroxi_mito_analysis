@@ -171,4 +171,15 @@ for aspect_num=1:length(aspects)
     fig_name = ['/3_bar_scatter_contact'];
     export_fig([fig_save_path fig_name '.png'],SAVE_FIG_MAG);
   end
+
+  % Save summary stats
+  iterPeroSummaryTable = table();
+  iterPeroSummaryTable.CellNum = stack_id;
+  iterPeroSummaryTable.ImageProcessingType = {IMAGE_PROCESSING_TYPE};
+  iterPeroSummaryTable.total_pero = total_pero;
+  iterPeroSummaryTable.unique_pero = unique_pero;
+  iterPeroSummaryTable.total_contacts = total_contacts;
+  iterPeroSummaryTable.unique_contacts = unique_contacts;
+  PeroSummaryTable = [PeroSummaryTable; iterPeroSummaryTable];
+
 end

@@ -69,6 +69,10 @@ for series_id=1:omeMeta.getImageCount
   s.(typ)(idx).stack_id = series_id;
   s.(typ)(idx).idx = idx;
   s.(typ)(idx).cell_num_txt = sprintf('Cell %d',idx);
+
+  if ONLY_ONE_NEW
+    break
+  end
 end
 
 s_all=s;

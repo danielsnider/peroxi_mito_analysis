@@ -10,8 +10,13 @@ for typ=fields(s)'
       iterT.PeroMeanIntensity = cat(1,s.(typ)(sid).PeroMeanIntensity{tid});
       iterT.PeroTotalIntensity = cat(1,s.(typ)(sid).PeroTotalIntensity{tid});
       iterT.PeroArea = cat(1,s.(typ)(sid).PeroArea{tid});
-      iterT.PeroCentroid = cat(1,s.(typ)(sid).PeroCentroidsXYZ{tid});
-      
+      if isfield(s.(typ)(sid), 'PeroCentroidsXYZ')
+        iterT.PeroCentroid = cat(1,s.(typ)(sid).PeroCentroidsXYZ{tid});
+      else
+        Z = zeros(height(iterT),1)+3.5; % TODO: fix HARDCODED Z-depth for max projection of slices 3,4!!
+        iterT.PeroCentroid = [s.(typ)(sid).PeroCentroidsXY{tid}; Z']';
+      end
+
       num_objects = height(iterT);
       % iterT.CellConvexAreaSqrUM = zeros(num_objects,1)+s.(typ)(sid).ConvexAreaSqrUM(tid);
       iterT.Distance = s.(typ)(sid).Distances{tid}';
@@ -22,6 +27,11 @@ for typ=fields(s)'
       ImagingType=cell(num_objects,1);
       ImagingType(:) = {typ};
       iterT.ImagingType = ImagingType;
+      
+      % ImageProcessingType
+      ImageProcessingType=cell(num_objects,1);
+      ImageProcessingType(:) = {IMAGE_PROCESSING_TYPE};
+      iterT.ImageProcessingType = ImageProcessingType;
       
       T = [T; iterT];
     end

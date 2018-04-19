@@ -11,9 +11,9 @@ for typ=fields(s)'
   % Loop over stacks
   for sid=1:length(s.(typ))
     timepoints = size(s.(typ)(sid).pero_ws,4);
+    z_depth = size(s.(typ)(sid).pero_ws,3);
     res_x = size(s.(typ)(sid).pero_ws,1);
     res_y = size(s.(typ)(sid).pero_ws,2);
-    res_z = size(s.(typ)(sid).pero_ws,3);
 
     % Loop over images in this stack 
     for tid=1:timepoints
@@ -42,14 +42,13 @@ for typ=fields(s)'
       figure
       hold on
 
-      all_mito_faces = [];
-      all_mito_vertices = [];
       mitoXYZ = [];
       num_pero = max(pero_ws_stack(:));
-
       all_mito_faces = {};
       all_mito_vertices = {};
-      for zid=1:5
+      all_pero_faces = {};
+      all_pero_vertices = {};
+      for zid=1:z_depth
         [Y X] = find(mito_thresh_stack(:,:,zid));
         Z = zeros(length(X),1)+zid;
         if isempty(Z)
@@ -72,8 +71,8 @@ for typ=fields(s)'
       end
 
       % Render 3D mito
-      shp = alphaShape(mitoXYZ,4);
-      h = plot(shp);
+      mito_shp = alphaShape(mitoXYZ,4);
+      h = plot(mito_shp);
       h.FaceColor = 'red';
       h.EdgeColor = 'none';
       h.Vertices(:,3) = h.Vertices(:,3) .* 13; % z depth scale factor 13um
@@ -90,58 +89,114 @@ for typ=fields(s)'
         pero_cent_y = pero_stats.Centroid(pid,2);
         pero_cent_z = pero_stats.Centroid(pid,3);
         pero_diameter = pero_stats.EquivDiameter(pid);
-        if exist('TraceColor') && ~isempty(TraceColor)
-          scatter3(pero_cent_x, pero_cent_y, pero_cent_z, pero_diameter*10,TraceColor(pid,:),'filled')
-        else
-          scatter3(pero_cent_x, pero_cent_y, pero_cent_z, pero_diameter*10,'green','filled')
+
+        if ~RENDER_PERO
+          if exist('TraceColor') && ~isempty(TraceColor)
+            scatter3(pero_cent_x, pero_cent_y, pero_cent_z, pero_diameter*10,TraceColor(pid,:),'filled')
+          else
+            scatter3(pero_cent_x, pero_cent_y, pero_cent_z, pero_diameter*10,'green','filled')
+          end
         end
+
+        if RENDER_PERO
+          pero = pero_ws_stack==pid;
+          peroXYZ = [];
+
+          % Render each 2D z-slice of the pero one at a time. This is needed because the 3D render isn't perfect and doesn't display thin 2D slices at all.
+          for zid=1:z_depth
+            [Y X] = find(pero(:,:,zid));
+            Z = zeros(length(X),1)+zid;
+            if isempty(Z)
+              continue
+            end
+            peroXYZ= [peroXYZ; X Y Z];
+            pero_shp2d = alphaShape(X,Y); % the default behaviour of a 2d render with alphaShape is to draw green slices at z=0, the next line disables this
+            pero_h2d = plot(pero_shp2d); % hide the green 2d slices
+            pero_h2d.Visible='off';
+            faces = pero_h2d.Faces;
+            vertices = [pero_h2d.Vertices Z .* 13]; % we created a two 2D but want to put it in 3D
+            if isempty(pero_h2d.Faces)
+                continue
+            end
+            p = patch('Faces',faces,'Vertices',vertices);
+            p.FaceColor = 'green';
+            % if exist('TraceColor') && ~isempty(TraceColor)
+            %   p.FaceColor = TraceColor(pid,:);
+            % end
+            p.EdgeColor = 'none';
+
+            all_pero_faces{zid} = faces;
+            all_pero_vertices{zid} = vertices;
+          end
+          if isempty(peroXYZ)
+            continue
+          end
+
+          % Render 3D pero
+          pero_shp = alphaShape(peroXYZ,4);
+          pero_h = plot(pero_shp);
+          pero_h.FaceColor = 'green';
+          % if exist('TraceColor') && ~isempty(TraceColor)
+          %   pero_h.FaceColor = TraceColor(pid,:);
+          % end
+          pero_h.EdgeColor = 'none';
+          pero_h.Vertices(:,3) = pero_h.Vertices(:,3) .* 13; % z depth scale factor 13um
+          all_pero_faces{zid+1} = pero_h.Faces;
+          all_pero_vertices{zid+1} = pero_h.Vertices;
+        end
+
       end
 
       % Measure distances between pero and mito
       points = pero_stats.Centroid;
       % points = points(54:60,:); % limit pero for debugging
-
       %% Do distance measurements
-      % NOTE: There are 6 distance types, the closest mito could be found in a 2D slice or the 3D render, because...
-      % NOTE: We had to measure each 2D slice and the 3D render seperately because I couldn't find a way to make them all one 3D object that could be measured by point2trimesh.
-      % Example:
-      % all_distances =
-      %                z=1           z=2          z=3          z=4            z=5        3D     <----- Distance to nearest mito in z=1,2,3,4,5 or 3D
-      % Pero 1        14.137      -13.609          -26      -39.002            0       13.609
-      % Pero 2        22.876       -20.52      -29.065      -40.768            0        20.52
-      % Pero 3        88.551      -86.332      -86.129      -91.243            0        86.03
-      all_distances = []; % distance to each 
-      all_surface_points = [];
-      for i=1:length(all_mito_vertices)
-        FV.faces = all_mito_faces{i};
-        FV.vertices = all_mito_vertices{i};
-        if isempty(FV.faces)
-          all_distances(:,i) = NaN;
-          all_surface_points(:,:,i) = NaN;
-          continue
+      if ~isfield(s.(typ)(sid), 'Distances') || length(s.(typ)(sid).Distances) < tid % only calculate if needed
+        % NOTE: There are 6 distance types, the closest mito could be found in a 2D slice or the 3D render, because...
+        % NOTE: We had to measure each 2D slice and the 3D render seperately because I couldn't find a way to make them all one 3D object that could be measured by point2trimesh.
+        % Example:
+        % all_distances =
+        %                z=1           z=2          z=3          z=4            z=5        3D     <----- Distance to nearest mito in z=1,2,3,4,5 or 3D
+        % Pero 1        14.137      -13.609          -26      -39.002            0       13.609
+        % Pero 2        22.876       -20.52      -29.065      -40.768            0        20.52
+        % Pero 3        88.551      -86.332      -86.129      -91.243            0        86.03
+        all_distances = []; % distance to each 
+        all_surface_points = [];
+        for i=1:length(all_mito_vertices)
+          FV.faces = all_mito_faces{i};
+          FV.vertices = all_mito_vertices{i};
+          if isempty(FV.faces)
+            all_distances(:,i) = NaN;
+            all_surface_points(:,:,i) = NaN;
+            continue
+          end
+          %FV.vertices(:,3) = FV.vertices(:,3).*13; % z depth scale factor 13um
+          %points(:,3) = points(:,3).*13; % z depth scale factor 13um
+          [distances,surface_points] = point2trimesh(FV, 'QueryPoints', points, 'Algorithm', 'parallel');
+          %points(:,3) = points(:,3)./13; % z depth scale factor 13um
+          %surface_points(:,3) = surface_points(:,3)./13; % z depth scale factor 13um
+          all_distances(:,i) = abs(distances);
+          all_surface_points(:,:,i) = surface_points;
         end
-        %FV.vertices(:,3) = FV.vertices(:,3).*13; % z depth scale factor 13um
-        %points(:,3) = points(:,3).*13; % z depth scale factor 13um
-        [distances,surface_points] = point2trimesh(FV, 'QueryPoints', points, 'Algorithm', 'parallel');
-        %points(:,3) = points(:,3)./13; % z depth scale factor 13um
-        %surface_points(:,3) = surface_points(:,3)./13; % z depth scale factor 13um
-        all_distances(:,i) = abs(distances);
-        all_surface_points(:,:,i) = surface_points;
-      end
 
-      % Get lowest distances
-      [min_dist,min_dist_type_id]=min(all_distances');
-      Distances = min_dist;
+        % Get lowest distances
+        [min_dist,min_dist_type_id]=min(all_distances');
+        Distances = min_dist;
 
-      % Get the correct surface points (there are multiple types 2D z=1,z=2,3D)
-      surface_points = [];
-      for pid=1:num_pero
-        surface_points(pid,:) = all_surface_points(pid,:,min_dist_type_id(pid));
-      end
+        % Get the correct surface points (there are multiple types 2D z=1,z=2,3D)
+        surface_points = [];
+        for pid=1:num_pero
+          surface_points(pid,:) = all_surface_points(pid,:,min_dist_type_id(pid));
+        end
 
-      if EDGE_TO_EDGE_DISTANCE
-        Distances = Distances - pero_stats.EquivDiameter' ./ 2;
-        Distances(Distances<0) = 0;
+        if EDGE_TO_EDGE_DISTANCE
+          Distances = Distances - pero_stats.EquivDiameter' ./ 2;
+          Distances(Distances<0) = 0;
+        end
+      else
+        % Use saved variables, do not recalculate
+        Distances = s.(typ)(sid).Distances{tid};
+        surface_points = s.(typ)(sid).MitoLocationsXYZ{tid};
       end
 
       % Plot distance lines
@@ -194,13 +249,25 @@ for typ=fields(s)'
       end
       if SAVE_TO_DISK
         % Store result
-        if strcmp(tracked,'')
+        if strcmp(tracked,'tracked')
           fig_name = sprintf('/distance_visualization type_%s cell_%03d timepoint_%03d %s',typ, stack_id, tid, tracked);
           [imageData, alpha] = export_fig([fig_save_path fig_name '.png'],SAVE_FIG_MAG, '-nocrop');
           if ~exist('timelapse_gif')
             timelapse_gif=uint8(zeros(size(imageData,1),size(imageData,2),3,timepoints));
           end
           timelapse_gif(:,:,:,tid) = imageData;
+
+          % Top Down View
+          fig_name = sprintf('/distance_visualization type_%s cell_%03d  top_down_view timepoint_%03d %s',typ, stack_id, tid, tracked);
+          view(2)
+          set(gca,'Color',[0 0 0 ]);
+          set(gcf,'Color',[0 0 0 ]);
+          set(gca,'ycolor','white')
+          set(gca,'xcolor','white')
+          annotation('textbox',dim,'String',info_txt,'Color','w')
+          plot3M(reshape([shiftdim(points,-1);shiftdim(surface_points,-1);shiftdim(points,-1)*NaN],[],3),'cyan')
+          [imageData, alpha] = export_fig([fig_save_path fig_name '.png'],SAVE_FIG_MAG);
+
         end
       end
 
@@ -218,19 +285,28 @@ for typ=fields(s)'
         Distances = [];
       end
 
+      mito_volume = volume(mito_shp);
 
       % Store Result
       s.(typ)(sid).PeroCentroidsXYZ{tid} = points;
       s.(typ)(sid).MitoLocationsXYZ{tid} = surface_points;
+      s.(typ)(sid).MitoVolume{tid} = mito_volume;
       s.(typ)(sid).Distances{tid} = Distances; 
       s.(typ)(sid).PeroArea{tid} = cat(1,pero_stats.Volume);
       s.(typ)(sid).PeroMeanIntensity{tid} = cat(1,pero_stats.MeanIntensity);
       s.(typ)(sid).PeroTotalIntensity{tid} = s.(typ)(sid).PeroArea{tid} .* s.(typ)(sid).PeroMeanIntensity{tid};
+
+      iterMitoTable = table();
+      iterMitoTable.Size = mito_volume;
+      iterMitoTable.CellNum = stack_id;
+      iterMitoTable.Timepoint = tid;
+      iterMitoTable.ImageProcessingType = {IMAGE_PROCESSING_TYPE};
+      MitoTable = [MitoTable; iterMitoTable];
     end
 
     % Create Gif
     if SAVE_TO_DISK
-      if strcmp(tracked,'')
+      if strcmp(tracked,'tracked')
         fig_name = sprintf('/0_gif_distance_visualization type_%s cell_%03d %s.gif', typ, stack_id, tracked);
         save_path = [fig_save_path fig_name];
         colour_imgs_to_gif(timelapse_gif,save_path, 1/2);
@@ -241,4 +317,5 @@ for typ=fields(s)'
       return
     end
   end
+
 end

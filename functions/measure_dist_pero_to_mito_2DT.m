@@ -32,7 +32,7 @@ for typ=fields(s)'
         % im_pero_centroids(PeroCentroidsXYInd)=1;
 
         % Mito Stats
-        mito_stats = regionprops(bwlabel(im_mito_thresh),im_mito,'Centroid','Area','MeanIntensity');
+        mito_stats = regionprops(bwlabel(im_mito_thresh),im_mito,'Area');
         
         %% Calc Distance to Nearest Mito from Pero
         PeroCentroidsXY = PeroCentroidsXY';
@@ -64,7 +64,6 @@ for typ=fields(s)'
 
       % Handle no objects found
       if length(pero_stats)==0
-        mito_stats = pero_stats;
         PeroCentroidsXY = [];
         MitoLocationsXY = [];
         NearestMitoInd = [];
@@ -89,6 +88,13 @@ for typ=fields(s)'
       s.(typ)(sid).MitoArea{tid} = cat(1,mito_stats.Area);
       s.(typ)(sid).MitoAreaDivNumPero{tid} =  sum(s.(typ)(sid).MitoArea{tid}) / s.(typ)(sid).NumPero{tid};
       s.(typ)(sid).PeroAreaDivMitoArea{tid} = sum(s.(typ)(sid).PeroArea{tid}) ./ sum(s.(typ)(sid).MitoArea{tid});
+
+      iterMitoTable = table();
+      iterMitoTable.Size = sum(cat(1,mito_stats.Area));
+      iterMitoTable.CellNum = stack_id;
+      iterMitoTable.Timepoint = tid;
+      iterMitoTable.ImageProcessingType = {IMAGE_PROCESSING_TYPE};
+      MitoTable = [MitoTable; iterMitoTable];
 
       % Debug
   %     figure
