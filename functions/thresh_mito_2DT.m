@@ -18,14 +18,14 @@ for typ=fields(s)'
 %       end
 
       % Smooth
-      mito = imgaussfilt(mito,1);
+      mito = imgaussfilt(mito,3);
 
       % Thresh
       mito = mito>prctile(mito(:),thresh_mito_prctile);
       
       % Remove objects that are too small or too large
-      mito = bwareaopen(mito,50);
-    
+      mito = bwareafilt(mito,[100 Inf]);
+
       % Store result
       s.(typ)(sid).mito_thresh(:,:,tid) = mito;
 

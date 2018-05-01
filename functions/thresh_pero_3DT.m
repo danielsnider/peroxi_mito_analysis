@@ -18,10 +18,8 @@ for typ=fields(s)'
         pero = imgaussfilt(pero,1);
 
         % Thresh
-        pero = pero>12000;
-
-        % Remove objects that are too small or too large
-        pero = bwareafilt(pero,[10 Inf]);
+        % pero = pero>12000;
+        pero = pero>prctile(pero(:),thresh_pero_prctile+.25);
 
         % Store result
         s.(typ)(sid).pero_thresh(:,:,zid,tid) = pero;

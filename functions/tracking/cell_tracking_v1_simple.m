@@ -146,7 +146,7 @@ function [CellsTable,diffTable] = cell_tracking_v1_simple(CellsTable, composite_
   CellsTable.TraceColor = cmap;
 
   % Drop Unneeded/Confusing Columns
-  if isfield(CellsTable, 'TraceUsed')
+  if strcmp('TraceUsed',CellsTable.Properties.VariableNames)
     CellsTable.TraceUsed = [];
   end
 

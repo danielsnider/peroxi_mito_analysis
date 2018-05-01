@@ -41,11 +41,11 @@ PROJECTION_TYPE = 'sum';
 PROJECTION_SLICES = 3:4;
 USE_SLICE='3 and 4'; % for text in figure only
 
-% TIMEPOINT_LIMIT = 1:12;
-TIMEPOINT_LIMIT = 1:2;
+TIMEPOINT_LIMIT = 1:12;
+%TIMEPOINT_LIMIT = 1:2;
 
 ONE_ONLY = false;
-ONLY_ONE_NEW = true;
+ONLY_ONE_NEW = false;
 TEST_ONE_FIG = false;
 SAVE_TO_DISK = true;
 SAVE_FIG_MAG = '-m1.5';
@@ -60,7 +60,7 @@ type_namemap('zoom_decon') = 'Zoomed Deconvolved 1024';
 type_names = {'Raw', 'Deconvolved', 'Zoomed Raw', 'Zoomed Deconvolved'};
 
 
-thresh_mito_prctile = 93;
+thresh_mito_prctile = 92.5;
 thresh_pero_prctile = 99.5;
 min_area = 25;
 max_area = 5000;
@@ -137,10 +137,6 @@ end
 
 plot_bar_scatter_contacts_per_cell_2DT
 
-save('s_all2-3d.mat','s_all2')
-save('s_all-3d.mat','s_all')
-
-
 log_msg(sprintf('[%s]: %s', mfilename(), '2.5D'));
 
 all_contact_durations = {}; % one row per cell. Each value is a length of timepoints for contact that took place
@@ -198,26 +194,34 @@ for typ={'zoom_decon'}
 
     % Save Table
     %save_table_pero_2DT
-    T.CellConvexAreaPX = [];
-    T.TraceUsed = [];
+    %T.CellConvexAreaPX = [];
     ResultsTable = [ResultsTable; T];
 
     close all
-    s_all2.(typ)(sid) = s.(typ);
+%    s_all2.(typ)(sid) = s.(typ);
   end
 end
 
+plot_bar_scatter_contacts_per_cell_2DT
 
-% Save Table
-filename = sprintf('%s/peroxisome_stats all cells.csv',fig_save_path);
+% Save Tables
+filename = sprintf('%s/Peroxisomes.csv',fig_save_path);
 writetable(ResultsTable,filename);
-
-
-save('s_all2-25d.mat','s_all2')
-save('s_all-25d.mat','s_all')
+filename = sprintf('%s/Mitochondria.csv',fig_save_path);
+writetable(MitoTable,filename);
+filename = sprintf('%s/DwellTimes.csv',fig_save_path);
+writetable(DwellTable,filename);
+filename = sprintf('%s/PeroxisomeSummary.csv',fig_save_path);
+writetable(PeroSummaryTable,filename);
+filename = sprintf('%s/Peroxisomes.mat',fig_save_path);
+save(filename,'ResultsTable');
+filename = sprintf('%s/Mitochondria.mat',fig_save_path);
+save(filename,'MitoTable');
+filename = sprintf('%s/DwellTimes.mat',fig_save_path);
+save(filename,'DwellTable');
+filename = sprintf('%s/PeroxisomeSummary.mat',fig_save_path);
+save(filename,'PeroSummaryTable');
 
 plot_line_mito_area
 plot_line_pero_count
 
-
-save('ResultsTable.mat','ResultsTable')

@@ -15,11 +15,12 @@ for typ=fields(s)'
         mito = s_mito(:,:,zid,tid);
 
         % Smooth
+        % mito = imgaussfilt(mito,3);
         mito = imgaussfilt(mito,3);
 
         % Thresh
-        mito = mito>10000;
-        % mito = mito>prctile(mito(:),thresh_mito_prctile);
+        % mito = mito>10000;
+        mito = mito>prctile(mito(:),thresh_mito_prctile+1.5);
         
         % Remove objects that are too small or too large
         mito = bwareafilt(mito,[100 Inf]);

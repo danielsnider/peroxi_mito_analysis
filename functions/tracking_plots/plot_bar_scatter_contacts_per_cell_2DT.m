@@ -168,7 +168,7 @@ for aspect_num=1:length(aspects)
   xticklabels([])
 
   if SAVE_TO_DISK
-    fig_name = ['/3_bar_scatter_contact'];
+    fig_name = ['/3_bar_scatter_contact ' IMAGE_PROCESSING_TYPE];
     export_fig([fig_save_path fig_name '.png'],SAVE_FIG_MAG);
   end
 

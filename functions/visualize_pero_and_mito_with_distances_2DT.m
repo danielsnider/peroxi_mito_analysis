@@ -178,8 +178,10 @@ for typ=fields(s)'
 
 
       if SAVE_TO_DISK
+        set(gca,'Ydir','normal')
+
         % Store result
-        fig_name = sprintf('/distance_visualization type_%s cell_%03d timepoint_%03d',typ, stack_id, tid);
+        fig_name = sprintf('/2D distance_visualization type_%s cell_%03d timepoint_%03d',typ, stack_id, tid);
         [imageData, alpha] = export_fig([fig_save_path fig_name '.png'],SAVE_FIG_MAG);
         if isempty(m)
             m=uint8(zeros(size(imageData,1),size(imageData,2),3,timepoints));
@@ -207,7 +209,7 @@ for typ=fields(s)'
 
     % Create Gif
     if SAVE_TO_DISK
-      fig_name = sprintf('/0_gif_distance_visualization type_%s cell_%03d.gif', typ, stack_id);
+      fig_name = sprintf('/0_2D_gif_distance_visualization type_%s cell_%03d.gif', typ, stack_id);
       save_path = [fig_save_path fig_name];
       colour_imgs_to_gif(m,save_path,1/2);
     end

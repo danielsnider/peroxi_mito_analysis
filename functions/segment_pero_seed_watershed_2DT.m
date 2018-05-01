@@ -35,8 +35,8 @@ for typ=fields(s)'
       stats = regionprops(labelled_img,'area');
       area = cat(1,stats.Area);
 
-      min_a = min_area*size(labelled_img,1)/512; % scale min area by image resolution
-      labelled_img(ismember(labelled_img,find(area > max_area | area < min_a)))=0;
+      % min_a = min_area*size(labelled_img,1)/512; % scale min area by image resolution
+      labelled_img(ismember(labelled_img,find(area > max_area | area < min_area)))=0;
 
       % Store result
       s.(typ)(sid).pero_ws(:,:,tid) = bwlabel(labelled_img);

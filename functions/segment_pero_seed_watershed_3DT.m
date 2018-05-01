@@ -13,7 +13,7 @@ for typ=fields(s)'
       s_pero_thresh = s.(typ)(sid).pero_thresh(:,:,:,tid);
 
       %% Seed
-      img_smooth = imgaussfilt3(s_pero,[2 2 2],'FilterSize',[19 19 3]);
+      img_smooth = imgaussfilt3(s_pero,[3 3 2],'FilterSize',[19 19 3]);
       seeds = imregionalmax(img_smooth);
       seeds(s_pero_thresh==0)=0;
 
@@ -34,8 +34,6 @@ for typ=fields(s)'
       %% Remove objects that are too small or too large
       stats = regionprops(labelled_img,'area');
       area = cat(1,stats.Area);
-      min_area_3d = 25;
-      max_area_3d = Inf;
       labelled_img(ismember(labelled_img,find(area > max_area | area < min_area)))=0;
 
       %% Store result

@@ -4,7 +4,12 @@ for typ=fields(s)'
 
   T=table();
   for sid=1:length(s.(typ))
-    timepoints = size(s.(typ)(sid).pero_ws,4);
+    if strcmp(IMAGE_PROCESSING_TYPE,'3D')
+      timepoints = size(s.(typ)(sid).pero_ws,4);
+    elseif strcmp(IMAGE_PROCESSING_TYPE, '2.5D')
+      timepoints = size(s.(typ)(sid).pero_ws,3);
+    end
+
     for tid = 1:timepoints
       iterT = table();
       iterT.PeroMeanIntensity = cat(1,s.(typ)(sid).PeroMeanIntensity{tid});
